@@ -1,0 +1,138 @@
+(function () {
+    var forwardPipeline, renderI;
+
+        var xml3ds = document.getElementsByTagName("xml3d");
+
+        if (xml3ds[0]) {
+            renderI = xml3ds[0].getRenderInterface();
+
+            //The normal forward rendering pipeline is always available initially
+            //It's also available as a render pass under the constructor XML3D.webgl.ForwardRenderPass(context),
+            forwardPipeline = renderI.getRenderPipeline(forwardPipeline);
+
+        }
+
+    /**
+     * GLSL accelerated Grayscale operator
+     */
+    Xflow.registerOperator("xflow.glslGrayscale", {
+        outputs: [ {type: 'texture', name : 'result', sizeof : 'image'} ],
+        params:  [ {type: 'texture', source : 'image'} ],
+        evaluate: function(result, image) {
+
+        var shader = forwardPipeline.context.gl.programFactory.getProgramByName("grayscale");
+        forwardPipeline.addShader("blitShader", shader);
+
+        var program = forwardPipeline.getShader("blitShader");
+        program.bind();
+        //Request the framebuffer from the render pipeline, using its name (in this case 'backBufferOne')
+        var sourceTex = forwardPipeline.getRenderTarget(image.data);
+        program.setUniformVariables({ inputTexture: sourceTex.colorTarget, canvasSize: this.canvasSize});
+
+        program.unbind();
+     //       var d = result.data;
+
+        }
+    });
+
+    /**
+     * GLSL accelerated Invert operator
+     */
+    Xflow.registerOperator("xflow.glslInvert", {
+        outputs: [ {type: 'texture', name : 'result', sizeof : 'image'} ],
+        params:  [ {type: 'texture', source : 'image'} ],
+        evaluate: function(result, image) {
+    //	console.time("dataflowtimeSecond");
+    //       var d = result.data;
+
+    //	d = start(image,d);
+    //	console.timeEnd("dataflowtimeSecond");
+        }
+    });
+
+XML3D.shaders.register("blur", {
+
+    vertex: [
+        "attribute vec3 position;",
+
+        "void main(void) {",
+        "   gl_Position = vec4(position, 0.0);",
+        "}"
+    ].join("\n"),
+
+    fragment: [
+	"uniform sampler2D inputTexture;",
+	"uniform vec2 canvasSize;",
+       "    vec2 texcoord = (gl_FragCoord.xy / canvasSize.xy);",
+
+	"const float blurSize = 1.0/512.0;",
+	"void main(void)",
+	"{",
+
+	"vec4 sum = vec4(0.0);",
+
+	"sum += texture2D(inputTexture, vec2(texcoord.x, texcoord.y - 4.0*blurSize)) * 0.05;",
+	"sum += texture2D(inputTexture, vec2(texcoord.x, texcoord.y - 3.0*blurSize)) * 0.09;",
+	"sum += texture2D(inputTexture, vec2(texcoord.x, texcoord.y - 2.0*blurSize)) * 0.12;",
+	"sum += texture2D(inputTexture, vec2(texcoord.x, texcoord.y - blurSize)) * 0.15;",
+	"sum += texture2D(inputTexture, vec2(texcoord.x, texcoord.y)) * 0.16;",
+	"sum += texture2D(inputTexture, vec2(texcoord.x, texcoord.y + blurSize)) * 0.15;",
+	"sum += texture2D(inputTexture, vec2(texcoord.x, texcoord.y + 2.0*blurSize)) * 0.12;",
+	"sum += texture2D(inputTexture, vec2(texcoord.x, texcoord.y + 3.0*blurSize)) * 0.09;",
+	"sum += texture2D(inputTexture, vec2(texcoord.x, texcoord.y + 4.0*blurSize)) * 0.05;",
+
+   	"gl_FragColor = sum;",
+	"}"
+    ].join("\n"),
+
+    uniforms: {
+	canvasSize : [512, 512]
+    },
+
+    samplers: {
+        inputTexture : null
+    }
+});
+
+XML3D.shaders.register("grayscale", {
+
+    vertex: [
+        "attribute vec3 position;",
+
+        "void main(void) {",
+        "   gl_Position = vec4(position, 0.0);",
+        "}"
+    ].join("\n"),
+
+    fragment: [
+    "precision highp float;",
+	"uniform sampler2D inputTexture;",
+	"uniform vec2 canvasSize;",
+    "    vec2 texcoord = (gl_FragCoord.xy / canvasSize.xy);",
+
+	"void main(void)",
+	"{",
+    "vec4 frameColor = texture2D(inputTexture, texcoord);",
+    "float luminance = frameColor.r * 0.3 + frameColor.g * 0.59 + frameColor.b * 0.11;",
+    "gl_FragColor = vec4(luminance, luminance, luminance, frameColor.a);",
+
+	"}"
+    ].join("\n"),
+
+    uniforms: {
+	textureCoord : [512, 512]
+    },
+
+    samplers: {
+        inputTexture : null
+    }
+});
+
+}());
+
+
+
+
+
+
+
