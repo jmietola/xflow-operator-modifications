@@ -93,12 +93,8 @@
     Xflow.registerOperator("xflow.glslGrayscale", {
         outputs: [ {type: 'texture', name : 'result', sizeof : 'image'} ],
         params:  [ {type: 'texture', source : 'image' } ],
-        evaluate: function(result, image) {
-        var resultTemp = result.data;
-
-
-
-        var BlitPass = function (pipeline, output, opt) {
+        alloc : function(){
+            var BlitPass = function (pipeline, output, opt) {
             webgl.BaseRenderPass.call(this, pipeline, output, opt);
             this.screenQuad = {};
         };
@@ -119,7 +115,7 @@
 
                 var program = this.pipeline.getShader("blitShader");
                 program.bind();
-                //Request the framebuffer from the render pipeline, using its name (in this case 'backBufferOne')
+                //Request the framebuffer object from the render pipeline, using its name (in this case 'backBufferOne')
                 var sourceTex = this.pipeline.getRenderTarget(this.inputs.inputTexture);
 
                 program.setUniformVariables({ inputTexture: sourceTex.colorTarget, canvasSize: this.canvasSize});
@@ -141,12 +137,19 @@
                 var imageData = canvasImgCtx.createImageData(256, 256);
                 imageData.data.set(pixelsData);
                 canvasImgCtx.putImageData(imageData, 0, 0);
-                resultTemp.set(pixelsData);
+              //  resultTemp.set(pixelsData);
 
             }
         });
 
         webgl.BlitPass = BlitPass;
+        },
+        evaluate: function(result, image) {
+        var resultTemp = result.data;
+
+
+
+
 
         }
     });
