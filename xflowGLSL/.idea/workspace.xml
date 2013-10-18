@@ -26,55 +26,45 @@
       <file leaf-file-name="xml3d.js" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/scripts/xml3d.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="22451" column="32" selection-start="743612" selection-end="743618" vertical-scroll-proportion="0.0" vertical-offset="335589" max-vertical-offset="391125">
+            <state line="22942" column="22" selection-start="759984" selection-end="759990" vertical-scroll-proportion="-16.914286" vertical-offset="343178" max-vertical-offset="391200">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="temp" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/temp">
-          <provider editor-type-id="com.intellij.persistence.database.editor.CsvTableFileEditorProvider">
-            <state />
-          </provider>
+      <file leaf-file-name="xflow-glsl.xhtml" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/xflow-glsl.xhtml">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="16" column="56" selection-start="0" selection-end="1723" vertical-scroll-proportion="-9.230769" vertical-offset="0" max-vertical-offset="795">
+            <state line="25" column="8" selection-start="1093" selection-end="1093" vertical-scroll-proportion="-4.8333335" vertical-offset="259" max-vertical-offset="1590">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="tempp" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/tempp">
+      <file leaf-file-name="xflowglsl.js" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/xflowglsl.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="10" column="71" selection-start="443" selection-end="458" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="2160">
+            <state line="151" column="46" selection-start="6284" selection-end="6284" vertical-scroll-proportion="0.6228956" vertical-offset="1710" max-vertical-offset="4860">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="xflowGLSL.xhtml" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/xflowGLSL.xhtml">
+      <file leaf-file-name="original-demo" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/original-demo">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="93" column="33" selection-start="3991" selection-end="3991" vertical-scroll-proportion="-31.875" vertical-offset="630" max-vertical-offset="1590">
-              <folding />
+            <state line="294" column="64" selection-start="11119" selection-end="11119" vertical-scroll-proportion="0.0" vertical-offset="3919" max-vertical-offset="6375">
+              <folding>
+                <marker date="1381918468180" expanded="false" signature="127:137" placeholder="..." />
+              </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="myxflow.js" pinned="false" current="true" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/myxflow.js">
+      <file leaf-file-name="oldxflowglsl" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/oldxflowglsl">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="76" column="92" selection-start="3159" selection-end="3159" vertical-scroll-proportion="-1.8167202" vertical-offset="2835" max-vertical-offset="4440">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="xml3d.js" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/xml3d.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="7480" column="0" selection-start="227794" selection-end="227794" vertical-scroll-proportion="22.12" vertical-offset="112393" max-vertical-offset="169890">
+            <state line="351" column="34" selection-start="9309" selection-end="9322" vertical-scroll-proportion="-18.77143" vertical-offset="4608" max-vertical-offset="7785">
               <folding />
             </state>
           </provider>
@@ -91,11 +81,16 @@
     <option name="changedFiles">
       <list>
         <option value="$PROJECT_DIR$/tempp" />
-        <option value="$PROJECT_DIR$/xflow-glsl.xhtml" />
         <option value="$PROJECT_DIR$/xml3d.js" />
-        <option value="$PROJECT_DIR$/temp" />
-        <option value="$PROJECT_DIR$/xflowGLSL.xhtml" />
         <option value="$PROJECT_DIR$/myxflow.js" />
+        <option value="$PROJECT_DIR$/xflowGLSL.xhtml" />
+        <option value="$PROJECT_DIR$/xflow-glsl.xhtml" />
+        <option value="$PROJECT_DIR$/temp" />
+        <option value="$PROJECT_DIR$/oldxflowglsl" />
+        <option value="$PROJECT_DIR$/asdf" />
+        <option value="$PROJECT_DIR$/original-demo" />
+        <option value="$PROJECT_DIR$/scripts/xml3d.js" />
+        <option value="$PROJECT_DIR$/xflowglsl.js" />
       </list>
     </option>
   </component>
@@ -149,6 +144,20 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="xflowGLSL" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="xflowGLSL" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="scripts" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
         </subPane>
       </pane>
       <pane id="Scope" />
@@ -158,7 +167,8 @@
     <property name="options.splitter.main.proportions" value="0.3" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="options.lastSelected" value="preferences.sourceCode.JavaScript" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../webcl" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../pipelineex2" />
+    <property name="FullScreen" value="false" />
     <property name="options.searchVisible" value="true" />
     <property name="options.splitter.details.proportions" value="0.2" />
   </component>
@@ -166,6 +176,11 @@
     <option name="myPythonConsoleState">
       <PyConsoleSettings />
     </option>
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
+    </key>
   </component>
   <component name="RunManager">
     <configuration default="true" type="DjangoTestsConfigurationType" factoryName="Django tests">
@@ -350,24 +365,24 @@
     <frame x="64" y="-4" width="1857" height="1085" extended-state="6" />
     <editor active="false" />
     <layout>
-      <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
+      <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
+      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.25067386" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.25067386" sideWeight="0.67050207" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="-1" side_tool="true" content_ui="tabs" />
-      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="-1" side_tool="true" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3294979" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
   <component name="VcsContentAnnotationSettings">
@@ -382,65 +397,102 @@
     <breakpoint-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/scripts/script/xml3d.js">
+    <entry file="file://$PROJECT_DIR$/xflow-glsl.xhtml">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="25510" column="16" selection-start="849971" selection-end="849971" vertical-scroll-proportion="0.5282609" vertical-offset="381804" max-vertical-offset="391125">
+        <state line="31" column="41" selection-start="1250" selection-end="1250" vertical-scroll-proportion="0.0" vertical-offset="214" max-vertical-offset="1590">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/xflow-glsl.xhtml">
+    <entry file="file://$PROJECT_DIR$/xflowglsl.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="4" column="0" selection-start="112" selection-end="300" vertical-scroll-proportion="0.0660066" vertical-offset="0" max-vertical-offset="2445">
-          <folding>
-            <marker date="1381758965029" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1381758965029" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1381758965029" expanded="true" signature="-1:-1" placeholder="{...}" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/temp">
-      <provider editor-type-id="com.intellij.persistence.database.editor.CsvTableFileEditorProvider">
-        <state />
-      </provider>
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="16" column="56" selection-start="0" selection-end="1723" vertical-scroll-proportion="-9.230769" vertical-offset="0" max-vertical-offset="795">
+        <state line="113" column="59" selection-start="4589" selection-end="4600" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="4410">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/scripts/xml3d.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="22451" column="32" selection-start="743612" selection-end="743618" vertical-scroll-proportion="0.0" vertical-offset="335589" max-vertical-offset="391125">
+        <state line="21704" column="33" selection-start="717113" selection-end="717113" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="391485">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/tempp">
+    <entry file="file://$PROJECT_DIR$/xflow-glsl.xhtml">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="10" column="71" selection-start="443" selection-end="458" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="2160">
+        <state line="31" column="41" selection-start="1250" selection-end="1250" vertical-scroll-proportion="0.0" vertical-offset="214" max-vertical-offset="1590">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/xml3d.js">
+    <entry file="file://$PROJECT_DIR$/xflowglsl.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="7480" column="0" selection-start="227794" selection-end="227794" vertical-scroll-proportion="22.12" vertical-offset="112393" max-vertical-offset="169890">
+        <state line="113" column="59" selection-start="4589" selection-end="4600" vertical-scroll-proportion="0.0" vertical-offset="990" max-vertical-offset="4410">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/xflowGLSL.xhtml">
+    <entry file="file://$PROJECT_DIR$/scripts/xml3d.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="93" column="33" selection-start="3991" selection-end="3991" vertical-scroll-proportion="-31.875" vertical-offset="630" max-vertical-offset="1590">
+        <state line="21704" column="33" selection-start="717113" selection-end="717113" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="391485">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/xflow-glsl.xhtml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="31" column="41" selection-start="1250" selection-end="1250" vertical-scroll-proportion="0.0" vertical-offset="214" max-vertical-offset="1590">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/xflowglsl.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="113" column="59" selection-start="4589" selection-end="4600" vertical-scroll-proportion="0.0" vertical-offset="990" max-vertical-offset="4410">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/myxflow.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="76" column="92" selection-start="3159" selection-end="3159" vertical-scroll-proportion="-1.8167202" vertical-offset="2835" max-vertical-offset="4440">
+        <state line="18" column="6" selection-start="847" selection-end="847" vertical-scroll-proportion="0.29834256" vertical-offset="0" max-vertical-offset="4485">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/original-demo">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="294" column="64" selection-start="11119" selection-end="11119" vertical-scroll-proportion="0.0" vertical-offset="3919" max-vertical-offset="6375">
+          <folding>
+            <marker date="1381918468180" expanded="false" signature="127:137" placeholder="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/oldxflowglsl">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="351" column="34" selection-start="9309" selection-end="9322" vertical-scroll-proportion="-18.77143" vertical-offset="4608" max-vertical-offset="7785">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/xflow-glsl.xhtml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="25" column="8" selection-start="1093" selection-end="1093" vertical-scroll-proportion="-4.8333335" vertical-offset="259" max-vertical-offset="1590">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/scripts/xml3d.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="22942" column="22" selection-start="759984" selection-end="759990" vertical-scroll-proportion="-16.914286" vertical-offset="343178" max-vertical-offset="391200">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/xflowglsl.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="151" column="46" selection-start="6284" selection-end="6284" vertical-scroll-proportion="0.6228956" vertical-offset="1710" max-vertical-offset="4860">
           <folding />
         </state>
       </provider>

@@ -33,8 +33,7 @@
     window.addEventListener("keypress", swapPipelines);
     window.addEventListener("load", injectDepthPipeline);
 
-
-    (function () {
+    (function (webgl) {
 
         var PostProcessingPipeline = function (context) {
             webgl.RenderPipeline.call(this, context);
@@ -52,18 +51,16 @@
                     width: context.canvasTarget.width,
                     height: context.canvasTarget.height,
                     colorFormat: context.gl.RGBA,
-                    depthFormat: context.gl.DEPTH_COMPONENT16,
+                    depthFormat: null,
                     stencilFormat: null,
                     depthAsRenderbuffer: true
                 });
-
-
 
                 //Register this target under the name "backBufferOne" so render passes may use it
                 this.addRenderTarget("backBufferOne", backBuffer);
 
                 //The screen is always available under context.canvastarget
-             //   this.addRenderTarget("screen", context.canvastarget);
+                this.addRenderTarget("screen", context.canvastarget);
 
                 //Remember to initialize each render pass
                 this.renderPasses.forEach(function (pass) {
@@ -77,17 +74,18 @@
                 //This is where the render process is defined as a series of render passes. They will be executed in the
                 //order that they are added. XML3D.webgl.ForwardRenderPass may be used to draw all visible objects to the given target
 
-                // forwardPass1 = new webgl.ForwardRenderPass(this, "backBufferOne"),
-                var  BlitPass = new webgl.BlitPass(this, "screen" ,"backBufferOne");
+                var forwardPass1 = new XML3D.webgl.ForwardRenderPass(this, "backBufferOne"),
+                    BlitPass = new XML3D.webgl.BlitPass(this, "screen", {inputs: { inputTexture: "backBufferOne" }});
 
-              //  this.addRenderPass(forwardPass1);
+                this.addRenderPass(forwardPass1);
                 this.addRenderPass(BlitPass);
             }
         });
 
         webgl.PostProcessingPipeline = PostProcessingPipeline;
 
-    }());
+    })(XML3D.webgl);
+
 
     /**
      * GLSL accelerated Grayscale operator
@@ -95,113 +93,62 @@
     Xflow.registerOperator("xflow.glslGrayscale", {
         outputs: [ {type: 'texture', name : 'result', sizeof : 'image'} ],
         params:  [ {type: 'texture', source : 'image' } ],
-        evaluate: function(result, image) {
-        var resultTemp = result.data;
-
-    (function () {
-
-        var BlitPass = function (pipeline, output, opt) {
+        alloc : function(){
+            var BlitPass = function (pipeline, output, opt) {
             webgl.BaseRenderPass.call(this, pipeline, output, opt);
+            this.screenQuad = {};
         };
 
         XML3D.createClass(BlitPass, webgl.BaseRenderPass, {
             init: function (context) {
-
                 var shader = context.programFactory.getProgramByName("grayscale");
                 this.pipeline.addShader("blitShader", shader);
-
-                // WebGL
-                this.gl = this.pipeline.context.gl;
-                this.debugCanvas = document.getElementById("debug");
-                this.debugCtx = this.debugCanvas.getContext("2d");
-                this.canvasWidth = context.canvasTarget.width;
-                this.canvasHeight = context.canvasTarget.height;
-                this.canvasSize = new Float32Array([this.canvasWidth, this.canvasHeight]);
-                this.screenQuad = new webgl.FullscreenQuad(context);
-                this.resultTexture = this.gl.createTexture();
-                this.renderBuffer = this.gl.createRenderbuffer();
-                this.textureBuffer = new Uint8Array(context.canvasTarget.width * context.canvasTarget.height * 4);
-
-
+                this.screenQuad = new XML3D.webgl.FullscreenQuad(context);
+                this.canvasSize = new Float32Array([context.canvasTarget.width, context.canvasTarget.height]);
             },
 
             render: function (scene) {
-                var gl = this.gl,
-                    width = this.canvasWidth,
-                    height = this.canvasHeight,
-                    program = this.pipeline.getShader("blitShader"),
-                    renderTarget = this.pipeline.getRenderTarget(this.output),
-                    screenQuad = new webgl.FullscreenQuad(this.pipeline.context),
-                    textureBuffer = new Uint8Array(256 * 256 * 4),
-                    // Create a buffer for the square's vertices.
-                    squareVerticesBuffer = gl.createBuffer(),
-                    squareVerticesTextureBuffer = gl.createBuffer(),
-                    texture = gl.createTexture(),
-                    renderbuffer = gl.createRenderbuffer(),
-                    framebuffer = gl.createFramebuffer(),
-                    debugCtx = this.debugCanvas.getContext("2d"),
-                    //Variables for debugging
-                    pixelData, imageData;
+                var gl = this.pipeline.context.gl;
+                var target = this.pipeline.getRenderTarget(this.output);
+                target.bind();
+                gl.clear(gl.DEPTH_BUFFER_BIT || gl.COLOR_BUFFER_BIT);
 
-                    var width = 256;
-                    var height = 256;
+                var program = this.pipeline.getShader("blitShader");
+                program.bind();
+                //Request the framebuffer object from the render pipeline, using its name (in this case 'backBufferOne')
+                var sourceTex = this.pipeline.getRenderTarget(this.inputs.inputTexture);
 
-                    gl.bindTexture(gl.TEXTURE_2D, texture);
-                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,
-                    gl.UNSIGNED_BYTE, image);
+                program.setUniformVariables({ inputTexture: sourceTex.colorTarget, canvasSize: this.canvasSize});
 
-                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
-                    gl.generateMipmap(gl.TEXTURE_2D);
-                    gl.bindTexture(gl.TEXTURE_2D, null);
+                this.screenQuad.draw(program);
 
-                    //2. Init Render Buffer
-                    gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
-                    gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, 256, 256);
+                program.unbind();
+                target.unbind();
 
-                    //3. Init Frame Buffer
-                    gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
-                    // Attach the texture to the framebuffer
-                    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+                // Reading pixels from framebuffer
+                var pixels = new Uint8Array(256 * 256 * 4);
+                gl.readPixels( 0, 0, 256, 256, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
 
-                    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, renderbuffer);
+                var pixelsData = new Uint8ClampedArray(pixels);
 
-                    //4. Clean up
-                    gl.bindTexture(gl.TEXTURE_2D, null);
-                    gl.bindRenderbuffer(gl.RENDERBUFFER, null);
-                    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+                canvasImg = document.getElementById("debug");
+                var canvasImgCtx = canvasImg.getContext("2d");
 
-                    // Render scene to render buffer
-                    gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
-                    this.screenQuad.draw(program);
-                    gl.readPixels(0, 0, 256, 256, gl.RGBA, gl.UNSIGNED_BYTE, textureBuffer);
-                    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-                    gl.activeTexture(gl.TEXTURE0);
-                    gl.bindTexture(gl.TEXTURE_2D, texture);
-
-                    program.bind();
-                    program.setUniformVariables({ inputTexture: texture, canvasSize: this.canvasSize});
-                    program.unbind();
-
-                    // Reading pixels from framebuffer
-
-                    // Set up the post-process effect for rendering
-                    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-
-                    // Debug code start ---
-                    pixelData = new Uint8ClampedArray(textureBuffer);
-                    imageData = debugCtx.createImageData(256, 256);
-                    imageData.data.set(pixelData);
-                    debugCtx.putImageData(imageData, 0, 0);
-                    // --- Debug end
+                var imageData = canvasImgCtx.createImageData(256, 256);
+                imageData.data.set(pixelsData);
+                canvasImgCtx.putImageData(imageData, 0, 0);
+              //  resultTemp.set(pixelsData);
 
             }
         });
 
         webgl.BlitPass = BlitPass;
+        },
+        evaluate: function(result, image) {
+        var resultTemp = result.data;
 
-    }());
+
+
 
 
         }
@@ -328,39 +275,6 @@
     samplers: {
         inputTexture : null
     }
-});
-
-    XML3D.shaders.register("grayscaletest", {
-
-    vertex: [
-        "attribute vec3 position;",
-
-        "void main(void) {",
-        "   gl_Position = vec4(position, 0.0);",
-        "}"
-
-    ].join("\n"),
-
-    fragment: [
-     " #ifdef GL_ES",
-	  "precision highp float;",
-	  "#endif",
-
-	  "varying highp vec2 vTextureCoord;",
-
-      "uniform sampler2D uSampler;",
-
-      "void main(void) {",
-
-		"// Convert to grayscale",
-		"vec3 color = texture2D(uSampler, vTextureCoord).rgb;",
-		"float gray = (color.r + color.g + color.b) / 3.0;",
-		"vec3 grayscale = vec3(gray);",
-
-		"gl_FragColor = vec4(grayscale, 1.0);",
-        "}"
-    ].join("\n")
-
 });
 
 }());

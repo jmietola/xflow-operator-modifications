@@ -22402,7 +22402,7 @@ XML3D.webgl.stopEvent = function(ev) {
             gl.bindBuffer(gl.ARRAY_BUFFER, this.posBuffer);
             gl.vertexAttribPointer(posAttr.location, 3, gl.FLOAT, false, 0, 0);
 
-            gl.drawArrays(gl.TRIANGLES, 0, 6);
+            //gl.drawArrays(gl.TRIANGLES, 0, 6);
 
             gl.disableVertexAttribArray(posAttr.location);
         }
@@ -22467,10 +22467,15 @@ XML3D.webgl.stopEvent = function(ev) {
 
         addShader: function(name, shader) {
             this.shaders[name] = shader;
+        },
+
+        setTexture: function(image) {
+            this.image= image;
+        },
+
+        getTexture: function(){
+            return this.image;
         }
-
-
-
 
     });
 
