@@ -63,7 +63,7 @@
                 this.addRenderTarget("backBufferOne", backBuffer);
 
                 //The screen is always available under context.canvastarget
-             //   this.addRenderTarget("screen", context.canvastarget);
+                this.addRenderTarget("screen", context.canvastarget);
 
                 //Remember to initialize each render pass
                 this.renderPasses.forEach(function (pass) {
@@ -77,10 +77,10 @@
                 //This is where the render process is defined as a series of render passes. They will be executed in the
                 //order that they are added. XML3D.webgl.ForwardRenderPass may be used to draw all visible objects to the given target
 
-                // forwardPass1 = new webgl.ForwardRenderPass(this, "backBufferOne"),
-                var  BlitPass = new webgl.BlitPass(this, "screen" ,"backBufferOne");
+                var forwardPass1 = new webgl.ForwardRenderPass(this, "backBufferOne"),
+                  BlitPass = new webgl.BlitPass(this, "screen" ,"backBufferOne");
 
-              //  this.addRenderPass(forwardPass1);
+                this.addRenderPass(forwardPass1);
                 this.addRenderPass(BlitPass);
             }
         });
@@ -120,6 +120,7 @@
                 this.screenQuad = new webgl.FullscreenQuad(context);
                 this.resultTexture = this.gl.createTexture();
                 this.renderBuffer = this.gl.createRenderbuffer();
+                this.frameBuffer = this.gl.createFramebuffer(),
                 this.textureBuffer = new Uint8Array(context.canvasTarget.width * context.canvasTarget.height * 4);
 
 
@@ -127,18 +128,18 @@
 
             render: function (scene) {
                 var gl = this.gl,
-                    width = this.canvasWidth,
-                    height = this.canvasHeight,
+                  //  width = this.canvasWidth,
+                  //  height = this.canvasHeight,
                     program = this.pipeline.getShader("blitShader"),
                     renderTarget = this.pipeline.getRenderTarget(this.output),
-                    screenQuad = new webgl.FullscreenQuad(this.pipeline.context),
+                    screenQuad = this.screenQuad,
                     textureBuffer = new Uint8Array(256 * 256 * 4),
                     // Create a buffer for the square's vertices.
                     squareVerticesBuffer = gl.createBuffer(),
                     squareVerticesTextureBuffer = gl.createBuffer(),
-                    texture = gl.createTexture(),
-                    renderbuffer = gl.createRenderbuffer(),
-                    framebuffer = gl.createFramebuffer(),
+                    texture = this.resultTexture,
+                    renderbuffer = this.renderBuffer,
+                    framebuffer = this.frameBuffer,
                     debugCtx = this.debugCanvas.getContext("2d"),
                     //Variables for debugging
                     pixelData, imageData;
@@ -171,23 +172,37 @@
                     gl.bindRenderbuffer(gl.RENDERBUFFER, null);
                     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
-                    // Render scene to render buffer
+
+                    // Render scene to fbo
                     gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
-                    this.screenQuad.draw(program);
-                    gl.readPixels(0, 0, 256, 256, gl.RGBA, gl.UNSIGNED_BYTE, textureBuffer);
+
+                    program.bind();
+                    gl.clearColor(1,0,0,0);
                     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
                     gl.activeTexture(gl.TEXTURE0);
                     gl.bindTexture(gl.TEXTURE_2D, texture);
+                    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+                    // Creating texture from pixel data
 
-                    program.bind();
+                    //gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, imageData);
+                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+                //    gl.uniform1i(gl.getUniformLocation(program.program.handle, "inputTexture"), 0);
                     program.setUniformVariables({ inputTexture: texture, canvasSize: this.canvasSize});
+                    screenQuad.draw(program);
+                    gl.bindTexture(gl.TEXTURE_2D, null);
+
+                    gl.readPixels(0, 0, 256, 256, gl.RGBA, gl.UNSIGNED_BYTE, textureBuffer);
+
+
                     program.unbind();
-
-                    // Reading pixels from framebuffer
-
-                    // Set up the post-process effect for rendering
                     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
 
                     // Debug code start ---
                     pixelData = new Uint8ClampedArray(textureBuffer);
@@ -364,16 +379,3 @@
 });
 
 }());
-
-
-
-
-
-
-
-
-
-
-
-
-
