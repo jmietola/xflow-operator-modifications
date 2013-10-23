@@ -66,12 +66,12 @@
            xmlns="http://www.xml3d.org/2009/xml3d">
      <defs id="mainDef">
 
-	    <data id="images" compute="invert = xflow.glslInvert(grayscale)" >
+	    <!--data id="images" compute="invert = xflow.glslInvert(image)" -->
 		    <data id="images" compute="grayscale = xflow.glslGrayscale(image)" >
 			    <texture name="image">
 				    <img id="srcimg" src="watertest.gif" style="display:none"/>
 			    </texture>
-		    </data>
+		    <!--/data -->
 	    </data>
 
 	    <shader id="texture1" script="urn:xml3d:shader:phong">
@@ -83,7 +83,7 @@
             <shader id="texture2" script="urn:xml3d:shader:phong">
                 <float3 name="diffuseColor">1.5 1.5 1.5</float3>
                 <float name="ambientIntensity">1.0</float>
-                <data src="#images" filter="rename({diffuseTexture:grayscale})"></data>
+                <data src="#images" filter="rename({diffuseTexture:grayscale})" />
             </shader>
 
 	    <shader id="texture3" script="urn:xml3d:shader:phong">
@@ -109,7 +109,7 @@
 
               <transform id="T1" translation="-1.1 0 6" />
               <transform id="T2" translation="1.1 0 6" />
-              <transform id="T3" translation="1.1 0 6" />
+              <transform id="T3" translation="3.3 0 6" />
 	  
      </defs>
 		<group shader="#texture1" transform="#T1">

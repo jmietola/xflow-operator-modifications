@@ -1,5 +1,8 @@
 (function () {
-    var PostProcessingPipeline, forwardPipeline, currentPipeline, renderI, injectDepthPipeline, swapPipelines;
+
+
+
+    var PostProcessingPipeline, forwardPipeline, currentPipeline, renderI, injectDepthPipeline, swapPipelines, buffers = {bufIn: null, bufOut: null};
     var webgl = XML3D.webgl;
     injectDepthPipeline = function () {
         var xml3ds = document.getElementsByTagName("xml3d");
@@ -89,16 +92,7 @@
 
     }());
 
-    /**
-     * GLSL accelerated Grayscale operator
-     */
-    Xflow.registerOperator("xflow.glslGrayscale", {
-        outputs: [ {type: 'texture', name : 'result', sizeof : 'image'} ],
-        params:  [ {type: 'texture', source : 'image' } ],
-        evaluate: function(result, image) {
-        var resultTemp = result.data;
-
-    (function () {
+ (function () {
 
         var BlitPass = function (pipeline, output, opt) {
             webgl.BaseRenderPass.call(this, pipeline, output, opt);
@@ -147,13 +141,12 @@
                     gl.bindTexture(gl.TEXTURE_2D, texture);
                     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
                //     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-                    var testData = new Uint8Array(image.data);
+                    var testData = new Uint8Array(buffers.bufIn.data);
                     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 800, 600, 0, gl.RGBA, gl.UNSIGNED_BYTE, testData);
                     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
                     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
                     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
                     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-
 
 
                     gl.bindTexture(gl.TEXTURE_2D, null);
@@ -179,36 +172,36 @@
                     gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
 
                     program.bind();
-                    gl.clearColor(1,0,0,0);
-            //        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+               //     gl.clearColor(1,0,0,0);
+                    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
                     gl.activeTexture(gl.TEXTURE0);
                     gl.bindTexture(gl.TEXTURE_2D, texture);
 
-                    // Creating texture from pixel data
+                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 800, 600, 0, gl.RGBA, gl.UNSIGNED_BYTE, testData);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
-                    //gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, imageData);
-
-
-                //    gl.uniform1i(gl.getUniformLocation(program.program.handle, "inputTexture"), 0);
                     program.setUniformVariables({ inputTexture: texture, canvasSize: this.canvasSize});
                     screenQuad.draw(program);
                     gl.bindTexture(gl.TEXTURE_2D, null);
 
                     gl.readPixels(0, 0, 800, 600, gl.RGBA, gl.UNSIGNED_BYTE, textureBuffer);
 
-
-                    program.unbind();
-                    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-
+                    //set data to result
+                    buffers.bufOut.data.set(textureBuffer);
 
                     // Debug code start ---
                     pixelData = new Uint8ClampedArray(textureBuffer);
                     imageData = debugCtx.createImageData(800, 600);
                     imageData.data.set(pixelData);
                     debugCtx.putImageData(imageData, 0, 0);
-                    resultTemp.set(pixelData);
                     // --- Debug end
+
+                    program.unbind();
+                    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
             }
         });
@@ -217,7 +210,19 @@
 
     }());
 
+           /**
+     * GLSL accelerated Grayscale operator
+     */
+    Xflow.registerOperator("xflow.glslGrayscale", {
+        outputs: [ {type: 'texture', name : 'result', sizeof : 'image'} ],
+        params:  [ {type: 'texture', source : 'image' } ],
+        evaluate: function(result, image) {
+        var resultTemp = result.data;
 
+        buffers.bufIn = image;
+        buffers.bufOut = result;
+
+        return true;
         }
     });
 
@@ -229,13 +234,12 @@
         params:  [ {type: 'texture', source : 'image'} ],
         evaluate: function(result, image) {
     //	console.time("dataflowtimeSecond");
-    //       var d = result.data;
-
+           var d = result.data;
+            d = image.data;
     //	d = start(image,d);
     //	console.timeEnd("dataflowtimeSecond");
         }
     });
-
 
     XML3D.shaders.register("drawTexture", {
 
