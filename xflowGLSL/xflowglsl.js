@@ -1,8 +1,9 @@
 (function () {
 
 
-
-    var PostProcessingPipeline, forwardPipeline, currentPipeline, renderI, injectDepthPipeline, swapPipelines, buffers = {bufIn: null, bufOut: null};
+    XML3D.debug.loglevel = 4;
+    var PostProcessingPipeline, forwardPipeline, currentPipeline, renderI, injectDepthPipeline, swapPipelines, blitPass;
+    var buffers = {bufIn: null, bufOut: null};
     var webgl = XML3D.webgl;
     injectDepthPipeline = function () {
         var xml3ds = document.getElementsByTagName("xml3d");
@@ -14,83 +15,15 @@
             //It's also available as a render pass under the constructor XML3D.webgl.ForwardRenderPass(context),
             forwardPipeline = renderI.getRenderPipeline();
 
-            PostProcessingPipeline = new XML3D.webgl.PostProcessingPipeline(renderI.context);
-            PostProcessingPipeline.init();
-            renderI.setRenderPipeline(PostProcessingPipeline);
-            currentPipeline = "depth";
+        //    renderI.setRenderPipeline(PostProcessingPipeline);
+        //    currentPipeline = "depth";
+            blitPass = new webgl.BlitPass(forwardPipeline);
+            blitPass.init(forwardPipeline.context);
+
         }
     };
 
-    swapPipelines = function (evt) {
-        if (evt.keyCode === 112) /* P */ {
-            if (currentPipeline === "depth") {
-                renderI.setRenderPipeline(forwardPipeline);
-                currentPipeline = "forward";
-            } else {
-                renderI.setRenderPipeline(PostProcessingPipeline);
-                currentPipeline = "depth";
-            }
-        }
-    };
-
-    window.addEventListener("keypress", swapPipelines);
     window.addEventListener("load", injectDepthPipeline);
-
-
-    (function () {
-
-        var PostProcessingPipeline = function (context) {
-            webgl.RenderPipeline.call(this, context);
-            this.createRenderPasses();
-        };
-
-        XML3D.createClass(PostProcessingPipeline, webgl.RenderPipeline);
-
-        XML3D.extend(PostProcessingPipeline.prototype, {
-            init: function () {
-                var context = this.context;
-
-                //Also available: webgl.GLScaledRenderTarget
-                var backBuffer = new webgl.GLRenderTarget(context, {
-                    width: context.canvasTarget.width,
-                    height: context.canvasTarget.height,
-                    colorFormat: context.gl.RGBA,
-                    depthFormat: context.gl.DEPTH_COMPONENT16,
-                    stencilFormat: null,
-                    depthAsRenderbuffer: true
-                });
-
-
-
-                //Register this target under the name "backBufferOne" so render passes may use it
-                this.addRenderTarget("backBufferOne", backBuffer);
-
-                //The screen is always available under context.canvastarget
-                this.addRenderTarget("screen", context.canvastarget);
-
-                //Remember to initialize each render pass
-                this.renderPasses.forEach(function (pass) {
-                    if (pass.init) {
-                        pass.init(context);
-                    }
-                });
-            },
-
-            createRenderPasses: function () {
-                //This is where the render process is defined as a series of render passes. They will be executed in the
-                //order that they are added. XML3D.webgl.ForwardRenderPass may be used to draw all visible objects to the given target
-
-                var forwardPass1 = new webgl.ForwardRenderPass(this, "screen"),
-                  BlitPass = new webgl.BlitPass(this);
-
-                this.addRenderPass(forwardPass1);
-                this.addRenderPass(BlitPass);
-            }
-        });
-
-        webgl.PostProcessingPipeline = PostProcessingPipeline;
-
-    }());
 
  (function () {
 
@@ -102,7 +35,7 @@
             init: function (context) {
 
                 var shader = context.programFactory.getProgramByName("grayscale");
-                this.pipeline.addShader("blitShader", shader);
+                forwardPipeline.addShader("blitShader", shader);
 
                 // WebGL
                 this.gl = this.pipeline.context.gl;
@@ -120,18 +53,18 @@
 
             },
 
-            render: function (scene) {
+            renderOnce: function (image) {
                 var gl = this.gl,
                   //  width = this.canvasWidth,
                   //  height = this.canvasHeight,
-                    program = this.pipeline.getShader("blitShader"),
-                    renderTarget = this.pipeline.getRenderTarget(this.output),
+                    program = forwardPipeline.getShader("blitShader"),
                     screenQuad = this.screenQuad,
-                    textureBuffer = new Uint8Array(800 * 600 * 4),
+                    textureBuffer = this.textureBuffer,
                     texture = this.resultTexture,
                     renderbuffer = this.renderBuffer,
                     framebuffer = this.frameBuffer,
-                    debugCtx = this.debugCanvas.getContext("2d"),
+                    debugCtx = this.debugCtx,
+
                     //Variables for debugging
                     pixelData, imageData;
 
@@ -141,7 +74,7 @@
                     gl.bindTexture(gl.TEXTURE_2D, texture);
                     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
                //     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-                    var testData = new Uint8Array(buffers.bufIn.data);
+                    var testData = new Uint8Array(image.data);
                     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 800, 600, 0, gl.RGBA, gl.UNSIGNED_BYTE, testData);
                     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
                     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
@@ -173,7 +106,7 @@
 
                     program.bind();
                //     gl.clearColor(1,0,0,0);
-                    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+                //    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
                     gl.activeTexture(gl.TEXTURE0);
                     gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -190,19 +123,17 @@
 
                     gl.readPixels(0, 0, 800, 600, gl.RGBA, gl.UNSIGNED_BYTE, textureBuffer);
 
-                    //set data to result
-                    buffers.bufOut.data.set(textureBuffer);
-
                     // Debug code start ---
                     pixelData = new Uint8ClampedArray(textureBuffer);
                     imageData = debugCtx.createImageData(800, 600);
                     imageData.data.set(pixelData);
                     debugCtx.putImageData(imageData, 0, 0);
+
                     // --- Debug end
 
                     program.unbind();
                     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-
+                return textureBuffer;
             }
         });
 
@@ -213,14 +144,14 @@
            /**
      * GLSL accelerated Grayscale operator
      */
+
+
     Xflow.registerOperator("xflow.glslGrayscale", {
         outputs: [ {type: 'texture', name : 'result', sizeof : 'image'} ],
         params:  [ {type: 'texture', source : 'image' } ],
         evaluate: function(result, image) {
-        var resultTemp = result.data;
 
-        buffers.bufIn = image;
-        buffers.bufOut = result;
+        result.data.set(blitPass.renderOnce(image));
 
         return true;
         }
