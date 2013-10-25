@@ -65,6 +65,9 @@
                     texture = this.resultTexture,
                     framebuffer = this.frameBuffer,
                     debugCtx = this.debugCtx,
+                    textureBuffer = this.textureBuffer,
+                    testBuffer = new Uint8Array(image.width * image.height * 4),
+                    textureTest = new Float32Array([image.width,image.height]),
 
                     //Variables for debugging
                     pixelData, imageData;
@@ -76,34 +79,35 @@
 
                     gl.activeTexture(gl.TEXTURE0);
                     gl.bindTexture(gl.TEXTURE_2D, texture);
-                    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+
                     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
                     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
                     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
                     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-
+                    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
                     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
 
-                    program.setUniformVariables({ inputTexture: texture, canvasSize: this.canvasSize});
+                    program.setUniformVariables({ inputTexture: texture, canvasSize: textureTest});
+
                     screenQuad.draw(program);
 
                     gl.bindTexture(gl.TEXTURE_2D, null);
 
-                    gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, textureBuffer);
+                    gl.readPixels(0, 0, image.width, image.height, gl.RGBA, gl.UNSIGNED_BYTE, testBuffer);
 
-                    // Debug code start ---
-                /*    pixelData = new Uint8ClampedArray(textureBuffer);
-                    imageData = debugCtx.createImageData(width, height);
+                /*    // Debug code start ---
+                    pixelData = new Uint8ClampedArray(testBuffer);
+                    imageData = debugCtx.createImageData(image.width, image.height);
                     imageData.data.set(pixelData);
-                    debugCtx.putImageData(imageData, 0, 0);*/
-                    // --- Debug end
-
+                    debugCtx.putImageData(imageData, 0, 0);
+                    // --- Debug end*/
+                
                     program.unbind();
+
                     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
-
-                return textureBuffer;
+                return testBuffer;
             }
         });
 
@@ -144,19 +148,19 @@
 
         vertex: [
             "attribute vec3 position;",
-
             "void main(void) {",
-            "   gl_Position = vec4(position, 0.0);",
+            " gl_Position = vec4(position, 0.0);",
             "}"
         ].join("\n"),
 
         fragment: [
             "uniform sampler2D inputTexture;",
+            "uniform float flipY;",
             "uniform vec2 canvasSize;",
 
             "void main(void) {",
-            "    vec2 texCoord = (gl_FragCoord.xy / canvasSize.xy);",
-            "    gl_FragColor = texture2D(inputTexture, texCoord);",
+            " vec2 texCoord = (gl_FragCoord.xy / canvasSize.xy);",
+            " gl_FragColor = texture2D(inputTexture, vec2(texCoord.s, (1.0-flipY) * texCoord.t + flipY * (1.0 - texCoord.t)));",
             "}"
         ].join("\n"),
 
