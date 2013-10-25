@@ -40,6 +40,10 @@
                 shader = context.programFactory.getProgramByName("grayscale");
                 forwardPipeline.addShader("grayscaleShader", shader);
 
+
+                shader = context.programFactory.getProgramByName("drawTexture");
+                forwardPipeline.addShader("drawtextureShader", shader);
+
                 // WebGL
                 this.gl = this.pipeline.context.gl;
                 this.debugCanvas = document.getElementById("debug");
@@ -60,6 +64,7 @@
                     width = this.canvasWidth,
                     height = this.canvasHeight,
                     program = forwardPipeline.getShader(shader),
+                    program2 = forwardPipeline.getShader("drawtextureShader"),
                     screenQuad = this.screenQuad,
                     textureBuffer = this.textureBuffer,
                     texture = this.resultTexture,
@@ -94,7 +99,7 @@
 
                     gl.bindTexture(gl.TEXTURE_2D, null);
 
-                    gl.readPixels(0, 0, image.width, image.height, gl.RGBA, gl.UNSIGNED_BYTE, testBuffer);
+              //      gl.readPixels(0, 0, image.width, image.height, gl.RGBA, gl.UNSIGNED_BYTE, testBuffer);
 
                 /*    // Debug code start ---
                     pixelData = new Uint8ClampedArray(testBuffer);
@@ -102,8 +107,30 @@
                     imageData.data.set(pixelData);
                     debugCtx.putImageData(imageData, 0, 0);
                     // --- Debug end*/
-                
+
                     program.unbind();
+                    /*--------------------------Second Shader(flip)------------------------------*/
+                    program2.bind();
+
+                    gl.activeTexture(gl.TEXTURE0);
+                    gl.bindTexture(gl.TEXTURE_2D, texture);
+
+                    program2.setUniformVariables({ inputTexture: texture, canvasSize: textureTest, flipY: 1});
+
+                    screenQuad.draw(program2);
+
+                    gl.bindTexture(gl.TEXTURE_2D, null);
+
+                    gl.readPixels(0, 0, image.width, image.height, gl.RGBA, gl.UNSIGNED_BYTE, testBuffer);
+
+               /*    // Debug code start ---
+                    pixelData = new Uint8ClampedArray(testBuffer);
+                    imageData = debugCtx.createImageData(image.width, image.height);
+                    imageData.data.set(pixelData);
+                    debugCtx.putImageData(imageData, 0, 0);
+                    // --- Debug end*/
+
+                     program2.unbind();
 
                     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
