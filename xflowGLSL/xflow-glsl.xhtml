@@ -66,11 +66,11 @@
            xmlns="http://www.xml3d.org/2009/xml3d">
      <defs id="mainDef">
 
-	    <data id="images" compute="invert = xflow.glslGrayscale(grayscale)" >
-		    <data id="images" compute="grayscale = xflow.glslBlur(image)" >
+	    <data id="images" compute="invert = xflow.glslBlur(grayscale)" >
+		    <data id="images" compute="grayscale = xflow.glslGrayscale(image)" >
 			    <texture name="image">
-				   <!-- <img id="srcimg" src="images.jpg" style="display:none"/-->
-                    <video src="Firefox.ogv" autoplay="true"/>
+				   <img id="srcimg" src="images.jpg" style="display:none"/>
+                  <!--<video src="Firefox.ogv" autoplay="true"/>-->
 			    </texture>
 		 </data >
 	    </data>
