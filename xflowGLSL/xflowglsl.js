@@ -77,7 +77,6 @@
                     //Variables for debugging
                     pixelData, imageData;
 
-
                     // Render scene to fbo
                     gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
 
@@ -85,16 +84,17 @@
 
                     gl.activeTexture(gl.TEXTURE0);
                     gl.bindTexture(gl.TEXTURE_2D, texture);
-            //        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-                    // Creating texture from pixel data
-                    var buffer = new Uint8Array(image.data);
-                    //gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, imageData);
+                    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
 
-                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, image.width, image.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, buffer);
+                    // Creating texture from pixel data
+
                     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
                     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
                     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
                     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+
                     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
 
                     program.setUniformVariables({ inputTexture: texture, canvasSize: textureTest});
@@ -103,41 +103,17 @@
 
                     gl.bindTexture(gl.TEXTURE_2D, null);
 
-              //      gl.readPixels(0, 0, image.width, image.height, gl.RGBA, gl.UNSIGNED_BYTE, testBuffer);
-
-                /*   // Debug code start ---
-                    pixelData = new Uint8ClampedArray(testBuffer);
-                    imageData = debugCtx.createImageData(image.width, image.height);
-                    imageData.data.set(pixelData);
-                    debugCtx.putImageData(imageData, 0, 0);
-                    // --- Debug end*/
+                    gl.readPixels(0, 0, image.width, image.height, gl.RGBA, gl.UNSIGNED_BYTE, testBuffer);
+                    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 
                     program.unbind();
-                    /*--------------------------Second Shader(flip)------------------------------*/
-                    program2.bind();
-
-                    gl.activeTexture(gl.TEXTURE0);
-                    gl.bindTexture(gl.TEXTURE_2D, texture);
-
-                    program2.setUniformVariables({ inputTexture: texture});
-
-                    screenQuad.draw(program2);
-
-               //     gl.copyTexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 0, 0, image.width, image.height, 0);
-              //      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, image.width, image.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, buffer);
-
-                    gl.bindTexture(gl.TEXTURE_2D, null);
-
-                    gl.readPixels(0, 0, image.width, image.height, gl.RGBA, gl.UNSIGNED_BYTE, testBuffer);
 
                    // Debug code start ---
                     pixelData = new Uint8ClampedArray(testBuffer);
                     imageData = debugCtx.createImageData(image.width, image.height);
                     imageData.data.set(pixelData);
                     debugCtx.putImageData(imageData, 0, 0);
-                    // --- Debug end
-
-                     program2.unbind();
+                    // --- Debug end;
 
                     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
@@ -158,7 +134,7 @@
         outputs: [ {type: 'texture', name : 'result', sizeof : 'image'} ],
         params:  [ {type: 'texture', source : 'image' } ],
         evaluate: function(result, image) {
-        console.log(blitPass);
+
         result.data.set(blitPass.renderOnce(image,"grayscaleShader"));
 
         return true;
@@ -175,38 +151,6 @@
 
         result.data.set(blitPass.renderOnce(image,"blurShader"));
 
-        }
-    });
-
-    XML3D.shaders.register("flipTexture", {
-
-        vertex: [
-            "attribute vec3 position;",
-            "attribute vec2 aTextureCoord;",
-
-            "varying vec2 vTextureCoord;",
-
-            "void main(void) {",
-            " gl_Position = vec4(position, 1.0);",
-            " vTextureCoord = vec2(aTextureCoord.s, 1.0 - aTextureCoord.t);",
-            "}"
-        ].join("\n"),
-
-        fragment: [
-            "uniform sampler2D inputTexture;",
-            "varying vec2 vTextureCoord;",
-
-            "void main(void) {",
-            " gl_FragColor = texture2D(inputTexture, vTextureCoord) * 1.0;",
-            "}"
-        ].join("\n"),
-
-        uniforms: {
-            canvasSize: [512, 512]
-        },
-
-        samplers: {
-            inputTexture: null
         }
     });
 
@@ -272,7 +216,7 @@
 
 	"void main(void)",
 	"{",
-    "vec4 frameColor = texture2D(inputTexture, texcoord);",
+    "vec4 frameColor = texture2D(inputTexture, vec2(texcoord.s, texcoord.t));",
     "float luminance = frameColor.r * 0.3 + frameColor.g * 0.59 + frameColor.b * 0.11;",
     "gl_FragColor = vec4(luminance, luminance, luminance, frameColor.a);",
 

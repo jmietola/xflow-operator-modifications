@@ -22397,38 +22397,19 @@ XML3D.webgl.stopEvent = function(ev) {
                1.0, -1.0, 0.0,
                1.0,  1.0, 0.0,   ]), gl.STATIC_DRAW);
 
-            this.texBuffer = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, this.texBuffer);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([            0.0, 0.0,
-            0.0, 1.0,
-            1.0, 1.0,
-            1.0, 0.0, ]), gl.STATIC_DRAW);
         },
 
         draw: function(program) {
             var gl = this.gl;
             var posAttr = program.attributes["position"];
             gl.enableVertexAttribArray(posAttr.location);
-            //gl.enableVertexAttribArray(0);
             gl.bindBuffer(gl.ARRAY_BUFFER, this.posBuffer);
             gl.vertexAttribPointer(posAttr.location, 3, gl.FLOAT, false, 0, 0);
-            //gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
-
-            var texAttr = program.attributes["aTextureCoord"];
-            if(texAttr){
-            gl.enableVertexAttribArray(texAttr.location);
-            //   gl.enableVertexAttribArray(1);
-            gl.bindBuffer(gl.ARRAY_BUFFER, this.texBuffer);
-            gl.vertexAttribPointer(texAttr.location, 2, gl.FLOAT, false, 0, 0);
-            //  gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 0, 0);
-             }
 
             gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 
             gl.disableVertexAttribArray(posAttr.location);
-           // gl.disableVertexAttribArray(texAttr.location);
-            //gl.disableVertexAttribArray(0);
-            gl.disableVertexAttribArray(1);
+
         }
 
     });
