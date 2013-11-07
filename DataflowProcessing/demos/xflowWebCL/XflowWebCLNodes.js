@@ -28,8 +28,8 @@
                          "* (3 * pown(t2, 2) - 2 * pown(t2, 3));",
                 "}",
 
-                "kernel void",
-                "perlin3d(global const float *gradients,",
+                "__kernel void",
+                "clNoiseKernel(global const float *gradients,",
                          "global const float *params,",
                          "global float *value)",
                 "{",
@@ -137,11 +137,11 @@
 
                 }
 
-                kernel.setKernelArg(0, bufIn);
-                kernel.setKernelArg(1, bufOut);
-                kernel.setKernelArg(2, width, WebCL.types.UINT);
-                kernel.setKernelArg(3, height, WebCL.types.UINT);
-
+                kernel.setKernelArg(0, gradientsBuf);
+                kernel.setKernelArg(1, paramsBuf);
+                kernel.setkernelArg(2, valuesBuf);
+          //      kernel.setKernelArg(2, width, WebCL.types.UINT);
+          //      kernel.setKernelArg(3, height, WebCL.types.UINT);
 
                 // Write the buffer to OpenCL device memory
                 cmdQueue.enqueueWriteBuffer(bufIn, false, 0, bufSize, image.data, []);
