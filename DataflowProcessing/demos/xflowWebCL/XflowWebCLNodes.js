@@ -128,18 +128,15 @@
                 if (bufSize !== oldBufSize) {
                     oldBufSize = bufSize;
 
-                    if (bufIn && bufOut) {
-                        bufIn.releaseCLResources();
-                        bufOut.releaseCLResources();
+                    if (gradientsBuf && paramsBuf && valuesBuf) {
+                        gradientsBuf.releaseCLResources();
+                        paramsBuf.releaseCLResources();
+                        valuesBuf.releaseCLResources();
                     }
+
                     // Setup WebCL context using the default device of the first available platform
-
                     gradientsBuf = buffers.gradientsBuf =  ctx.createBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, gradients, null);
-                    clEnqueueWriteBuffer(queue, gradientsBuf, 1, 0, gradients, null, null);
-
                     paramsBuf = buffers.paramsBuf = ctx.createBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, params, null);
-                    clEnqueueWriteBuffer(queue, paramsBuf, 1, 0, params, null, null);
-
                     valuesBuf = buffers.valuesBuf = ctx.createBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, values, null);
 
                 }
@@ -147,11 +144,12 @@
                 kernel.setKernelArg(0, gradientsBuf);
                 kernel.setKernelArg(1, paramsBuf);
                 kernel.setkernelArg(2, valuesBuf);
-          //      kernel.setKernelArg(2, width, WebCL.types.UINT);
-          //      kernel.setKernelArg(3, height, WebCL.types.UINT);
 
                 // Write the buffer to OpenCL device memory
-                cmdQueue.enqueueWriteBuffer(bufIn, false, 0, bufSize, image.data, []);
+    //            cmdQueue.enqueueWriteBuffer(bufIn, false, 0, bufSize, image.data, []);
+                cmdQueue.enqueueWriteBuffer(queue, gradientsBuf, 1, 0, gradients, null, null);
+
+                cmdQueue.enqueueWriteBuffer(queue, paramsBuf, 1, 0, params, null, null);
 
                 // Init ND-range
                 var localWS = [16, 4],
@@ -162,7 +160,7 @@
                 cmdQueue.enqueueNDRangeKernel(kernel, globalWS.length, [], globalWS, localWS, []);
 
                 // Read the result buffer from OpenCL device
-                cmdQueue.enqueueReadBuffer(bufOut, false, 0, bufSize, result.data, []);
+     //           cmdQueue.enqueueReadBuffer(bufOut, false, 0, bufSize, result.data, []);
 
                 cmdQueue.finish(); //Finish all the operations
 
