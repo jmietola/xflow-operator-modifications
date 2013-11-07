@@ -100,7 +100,7 @@
 
         var kernel = webcl.kernels.getKernel("clNoiseKernel"),
             oldBufSize = 0,
-            buffers = {bufIn: null, bufOut: null};
+            buffers = {gradientsBuf: null, paramsBuf: null, valuesBuf: null};
 
 
         Xflow.registerOperator("xflow.clNoiseKernel", {
@@ -121,8 +121,9 @@
 
                 // Setup buffers
                     bufSize = imgSize * 4, // size in bytes
-                    bufIn = buffers.bufIn,
-                    bufOut = buffers.bufOut;
+                    gradientsBuf = buffers.gradientsBuf,
+                    paramsBuf = buffers.paramsBuf,
+                    valuesBuf = buffers.valuesBuf;
 
                 if (bufSize !== oldBufSize) {
                     oldBufSize = bufSize;
@@ -132,8 +133,14 @@
                         bufOut.releaseCLResources();
                     }
                     // Setup WebCL context using the default device of the first available platform
-                    bufIn = buffers.bufIn = ctx.createBuffer(WebCL.CL_MEM_READ_ONLY, bufSize);
-                    bufOut = buffers.bufOut = ctx.createBuffer(WebCL.CL_MEM_WRITE_ONLY, bufSize);
+
+                    gradientsBuf = buffers.gradientsBuf =  ctx.createBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, gradients, null);
+                    clEnqueueWriteBuffer(queue, gradientsBuf, 1, 0, gradients, null, null);
+
+                    paramsBuf = buffers.paramsBuf = ctx.createBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, params, null);
+                    clEnqueueWriteBuffer(queue, paramsBuf, 1, 0, params, null, null);
+
+                    valuesBuf = buffers.valuesBuf = ctx.createBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, values, null);
 
                 }
 
