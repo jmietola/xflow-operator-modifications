@@ -132,11 +132,18 @@
 
             },
 
-            applyShader: function (image, shader) {
-                var gl = this.gl;
+            draw: function () {
+                var gl = this.gl,
+                    curPos = this.curPos,
+                    curNor = this.curNor;
+
+                gl.bindBuffer(gl.ARRAY_BUFFER, curPosVBO);
+                gl.bufferSubData(gl.ARRAY_BUFFER, 0, curPos);
+
+                gl.bindBuffer(gl.ARRAY_BUFFER, curNorVBO);
+                gl.bufferSubData(gl.ARRAY_BUFFER, 0, curNor);
                 //showDebugImage(textureBuffer, width, height);
 
-                return textureBuffer;
             }
         });
 
@@ -461,8 +468,6 @@
                     imgSize = width * height,
                     NUM_VERTEX_COMPONENTS = 3,
 
-                    arrayHere = shaderPass.init();
-
                 // These should be set via initGL
                     initPos = null,   // initial vertex positions
                     initNor = null,   // initial vertex normals (just needed for resetting)
@@ -488,6 +493,7 @@
                     globalWorkSize = new Int32Array(2),
                     localWorkSize = new Int32Array(2);
 
+                shaderPass.init();
 
                 if (bufSize !== oldBufSize) {
                     oldBufSize = bufSize;
@@ -557,6 +563,7 @@
                 cmdQueue.enqueueReadBuffer(curPosBuffer, true, 0, bufSize, curPos );
                 cmdQueue.enqueueReadBuffer(curNorBuffer, true, 0, bufSize, curNor);
 
+                shaderPass.draw();
                 //console.timeEnd("clThresholdImage");
 
                 return true;
