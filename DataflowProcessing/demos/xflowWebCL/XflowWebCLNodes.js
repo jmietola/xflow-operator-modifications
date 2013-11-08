@@ -1,7 +1,150 @@
 (function () {
     var webcl = XML3D.webcl,
+        webgl = XML3D.webgl,
         cmdQueue = webcl.cmdQueue,
-        ctx = webcl.ctx;
+        ctx = webcl.ctx,
+        forwardPipeline, renderI, injectXFlowGLSLPipeline, shaderPass;
+
+    XML3D.debug.loglevel = 4;
+
+    function showDebugImage(pixelData, width, height) {
+        var debugCanvas = document.getElementById("debug"), debugCtx, imageData;
+
+        if (!debugCanvas) {
+            return;
+        }
+
+        debugCtx = debugCanvas.getContext("2d");
+        imageData = debugCtx.createImageData(width, height);
+        imageData.data.set(new Uint8ClampedArray(pixelData));
+        debugCtx.putImageData(imageData, 0, 0);
+    }
+
+    injectXFlowGLSLPipeline = function () {
+        var xml3ds = document.getElementsByTagName("xml3d");
+
+        if (xml3ds[0]) {
+            renderI = xml3ds[0].getRenderInterface();
+
+            //The normal forward rendering pipeline is always available initially
+            //It's also available as a render pass under the constructor XML3D.webgl.ForwardRenderPass(context),
+            forwardPipeline = renderI.getRenderPipeline();
+
+            shaderPass = new webgl.ShaderPass(forwardPipeline);
+            shaderPass.init(forwardPipeline.context);
+
+            /**
+             * Initialising grayscale shader
+             */
+
+            XML3D.shaders.register("grayscale", {
+                vertex: [
+                    "attribute vec3 position;",
+
+                    "void main(void) {",
+                    "   gl_Position = vec4(position, 0.0);",
+                    "}"
+                ].join("\n"),
+
+                fragment: [
+                    "precision highp float;",
+                    "uniform sampler2D inputTexture;",
+                    "uniform vec2 quadSize;",
+                    "    vec2 texcoord = (gl_FragCoord.xy / quadSize.xy);",
+
+                    "void main(void)",
+                    "{",
+                    "vec4 frameColor = texture2D(inputTexture, texcoord);",
+                    "float luminance = frameColor.r * 0.3 + frameColor.g * 0.59 + frameColor.b * 0.11;",
+                    "gl_FragColor = vec4(luminance, luminance, luminance, frameColor.a);",
+
+                    "}"
+                ].join("\n")
+            });
+
+            forwardPipeline.addShader("grayscaleShader",
+                forwardPipeline.context.programFactory.getProgramByName("grayscale"));
+
+
+            /**
+             * Initialising blur shader
+             */
+
+            XML3D.shaders.register("blur", {
+
+                vertex: [
+                    "attribute vec3 position;",
+
+                    "void main(void) {",
+                    "   gl_Position = vec4(position, 0.0);",
+                    "}"
+                ].join("\n"),
+
+                fragment: [
+                    "uniform sampler2D inputTexture;",
+                    "uniform vec2 quadSize;",
+                    "    vec2 texcoord = (gl_FragCoord.xy / quadSize.xy);",
+
+                    "const float blurSize = 1.0/64.0;",
+                    "void main(void)",
+                    "{",
+
+                    "vec4 sum = vec4(0.0);",
+
+                    "sum += texture2D(inputTexture, vec2(texcoord.x, texcoord.y - 4.0*blurSize)) * 0.05;",
+                    "sum += texture2D(inputTexture, vec2(texcoord.x, texcoord.y - 3.0*blurSize)) * 0.09;",
+                    "sum += texture2D(inputTexture, vec2(texcoord.x, texcoord.y - 2.0*blurSize)) * 0.12;",
+                    "sum += texture2D(inputTexture, vec2(texcoord.x, texcoord.y - blurSize)) * 0.15;",
+                    "sum += texture2D(inputTexture, vec2(texcoord.x, texcoord.y)) * 0.16;",
+                    "sum += texture2D(inputTexture, vec2(texcoord.x, texcoord.y + blurSize)) * 0.15;",
+                    "sum += texture2D(inputTexture, vec2(texcoord.x, texcoord.y + 2.0*blurSize)) * 0.12;",
+                    "sum += texture2D(inputTexture, vec2(texcoord.x, texcoord.y + 3.0*blurSize)) * 0.09;",
+                    "sum += texture2D(inputTexture, vec2(texcoord.x, texcoord.y + 4.0*blurSize)) * 0.05;",
+
+                    "gl_FragColor = sum;",
+                    "}"
+                ].join("\n")
+            });
+            forwardPipeline.addShader("blurShader",
+                forwardPipeline.context.programFactory.getProgramByName("blur"));
+        }
+    };
+
+    window.addEventListener("load", injectXFlowGLSLPipeline);
+
+    (function () {
+
+        var ShaderPass = function (pipeline, output, opt) {
+            webgl.BaseRenderPass.call(this, pipeline, output, opt);
+        };
+
+        XML3D.createClass(ShaderPass, webgl.BaseRenderPass, {
+            init: function (context) {
+                var gl = this.gl = this.pipeline.context.gl;
+                this.screenQuad = new webgl.FullscreenQuad(context);
+                this.resultTexture = gl.createTexture();
+                this.frameBuffer = gl.createFramebuffer();
+
+                this.initPos = new Float32Array(vertexArray);
+                this.initNor = new Float32Array(normalArray);
+                this.curPos = vertexArray;
+                this.curNor = normalArray;
+
+            },
+
+            applyShader: function (image, shader) {
+                var gl = this.gl;
+                //showDebugImage(textureBuffer, width, height);
+
+                return textureBuffer;
+            }
+        });
+
+        webgl.ShaderPass = ShaderPass;
+
+    }());
+
+    // WebCL section HERE
 
     (function () {
         webcl.kernels.register("clDisplace",
@@ -298,7 +441,7 @@
 
         var kernel = webcl.kernels.getKernel("clDisplace"),
             oldBufSize = 0,
-            buffers = {vertices: null, normals: null, output: null};
+            buffers = {InitPosBuffer: null, curNorBuffer: null, curPosBuffer: null};
 
 
         Xflow.registerOperator("xflow.clNoiseKernel", {
@@ -316,56 +459,103 @@
                 var width = image.width,
                     height = image.height,
                     imgSize = width * height,
+                    NUM_VERTEX_COMPONENTS = 3,
 
-                    gradients,
-                    params,
-                    values;
+                    arrayHere = shaderPass.init();
 
+                // These should be set via initGL
+                    initPos = null,   // initial vertex positions
+                    initNor = null,   // initial vertex normals (just needed for resetting)
+                    curPos = null,    // current vertex positions
+                    curNor = null,    // current vertex normals
+
+                // simulation parameters
+                    frequency = 1.0,
+                    amplitude = 0.35,
+                    phase = 0.0,
+                    lacunarity = 2.0,
+                    increment = 1.5,
+                    octaves = 5.5,
+                    roughness = 0.025,
+                    nVertices = null,
                 // Setup buffers
-                    bufSize = imgSize * 4, // size in bytes
-                    vertices = buffers.vertices,
-                    normals = buffers.normals,
-                    output = buffers.output;
+                    bufSize = nVertices * NUM_VERTEX_COMPONENTS * Float32Array.BYTES_PER_ELEMENT, // size in bytes
+
+                    initPosBuffer = buffers.initPosBuffer,
+                    curPosBuffer = buffers.curPosBuffer,
+                    curNorBuffer = buffers.curNorBuffer,
+
+                    globalWorkSize = new Int32Array(2),
+                    localWorkSize = new Int32Array(2);
+
 
                 if (bufSize !== oldBufSize) {
                     oldBufSize = bufSize;
 
-                    if (vertices && normals && output) {
-                        vertices.releaseCLResources();
-                        normals.releaseCLResources();
-                        output.releaseCLResources();
+                    if (initPosBuffer && curNorBuffer && curPosBuffer) {
+                        initPosBuffer.releaseCLResources();
+                        curNorBuffer.releaseCLResources();
+                        curPosBuffer.releaseCLResources();
                     }
 
                     // Setup WebCL context using the default device of the first available platform
-                    vertices = buffers.vertices =  ctx.createBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, gradients, null);
-                    normals = buffers.normals = ctx.createBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, params, null);
-                    output = buffers.output = ctx.createBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, values, null);
+                    initPosBuffer = buffers.initPosBuffer =  ctx.createBuffer(WebCL.CL_MEM_READ_ONLY, bufSize);
+                    curNorBuffer = buffers.curNorBuffer = ctx.createBuffer(WebCL.CL_MEM_READ_ONLY, bufSize);
+                    curPosBuffer = buffers.curPosBuffer = ctx.createBuffer(WebCL.CL_MEM_WRITE_ONLY, bufSize);
 
                 }
 
-                kernel.setKernelArg(0, vertices);
-                kernel.setKernelArg(1, normals);
-                kernel.setkernelArg(2, output);
+                // Initial load of initial position data
+                cmdQueue.enqueueWriteBuffer(initPosBuffer, true, 0, bufSize, initPos);
 
-                // Write the buffer to OpenCL device memory
-    //            cmdQueue.enqueueWriteBuffer(bufIn, false, 0, bufSize, image.data, []);
-                cmdQueue.enqueueWriteBuffer(queue, vertices, 1, 0, gradients, null, null);
+                cmdQueue.finish();
 
-                cmdQueue.enqueueWriteBuffer(queue, normals, 1, 0, params, null, null);
+                // Init ends here
 
-                // Init ND-range
+                kernel.setArg(0, initPosBuffer);
+                kernel.setArg(1, curNorBuffer);
+                kernel.setArg(2, curPosBuffer);
+                kernel.setArg(3, frequency, kernelArgType.FLOAT);
+                kernel.setArg(4, amplitude, kernelArgType.FLOAT);
+                kernel.setArg(5, phase, kernelArgType.FLOAT);
+                kernel.setArg(6, lacunarity, kernelArgType.FLOAT);
+                kernel.setArg(7, increment, kernelArgType.FLOAT);
+                kernel.setArg(8, octaves, kernelArgType.FLOAT);
+                kernel.setArg(9, roughness, kernelArgType.FLOAT);
+                kernel.setArg(10, nVertices, kernelArgType.UINT);
+
+               /* // Init ND-range
                 var localWS = [16, 4],
                     globalWS = [Math.ceil(width / localWS[0]) * localWS[0],
-                        Math.ceil(height / localWS[1]) * localWS[1]];
+                        Math.ceil(height / localWS[1]) * localWS[1]];*/
+
+                // Get the maximum work group size for executing the kernel on the device
+                //
+                var workGroupSize = kernel.getWorkGroupInfo(device, WebCL.CL.KERNEL_WORK_GROUP_SIZE);
+
+                globalWS[0] = 1;
+                globalWS[1] = 1;
+                while(globalWS[0] * globalWS[1] < nVertices) {
+                    globalWS[0] = globalWS[0] * 2;
+                    globalWS[1] = globalWS[1] * 2;
+                }
+
+                localWS[0] = globalWS[0];
+                localWS[1] = globalWS[1];
+                while (localWS[0] * localWS[1] > workGroupSize) {
+                    localWS[0] = localWS[0] / 2;
+                    localWS[1] = localWS[1] / 2;
+                }
 
                 // Execute (enqueue) kernel
-                cmdQueue.enqueueNDRangeKernel(kernel, globalWS.length, [], globalWS, localWS, []);
+           //     cmdQueue.enqueueNDRangeKernel(kernel, globalWS.length, [], globalWS, localWS, []);
+                cmdQueue.enqueueNDRangeKernel(kernel, null, globalWorkSize, localWorkSize);
+
+                cmdQueue.finish();
 
                 // Read the result buffer from OpenCL device
-     //           cmdQueue.enqueueReadBuffer(bufOut, false, 0, bufSize, result.data, []);
-                cmdQueue.enqueueReadBuffer(queue, output, 1, 0, values, null, null);
-
-                cmdQueue.finish(); //Finish all the operations
+                cmdQueue.enqueueReadBuffer(curPosBuffer, true, 0, bufSize, curPos );
+                cmdQueue.enqueueReadBuffer(curNorBuffer, true, 0, bufSize, curNor);
 
                 //console.timeEnd("clThresholdImage");
 
