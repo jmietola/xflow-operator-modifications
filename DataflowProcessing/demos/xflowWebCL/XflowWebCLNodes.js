@@ -125,17 +125,22 @@
                 this.resultTexture = gl.createTexture();
                 this.frameBuffer = gl.createFramebuffer();
 
+                //These variables must be shared with webcl 
                 this.initPos = new Float32Array(vertexArray);
                 this.initNor = new Float32Array(normalArray);
                 this.curPos = vertexArray;
                 this.curNor = normalArray;
+                this.curPosVBO = webglVertexBuffer;
+                this.curNorVBO = webglNormalBuffer;
 
             },
 
             draw: function () {
                 var gl = this.gl,
                     curPos = this.curPos,
-                    curNor = this.curNor;
+                    curNor = this.curNor,
+                    curPosVBO = this.curPosVBO,
+                    curNorVBO = this.curNorVBO;
 
                 gl.bindBuffer(gl.ARRAY_BUFFER, curPosVBO);
                 gl.bufferSubData(gl.ARRAY_BUFFER, 0, curPos);
