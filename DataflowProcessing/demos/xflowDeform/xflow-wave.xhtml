@@ -57,7 +57,7 @@
       </lightshader>
       
       <shader id="Material" script="urn:xml3d:shader:phong">
-       <float name="ambientIntensity">0.1</float>
+       <float name="ambientIntensity">2.1</float>
        <texture name="diffuseTexture">
            <!--<img src="water.jpg"/-->
            <!--<video src="../../assets/dizzy.ogv" autoplay="true"/>-->
@@ -88,12 +88,15 @@
 	    </data>
 
       <!-- Transform Grid to Waves: -->
+
     <data id="wave" compute="(position, normal) = xflow.clDeform(position, normal)" >
       <data id="wave" compute="(position, normal) = xflow.clDeform(position, normal)" >
         <data src="#exampleGrid"/>
       </data>
     </data>
-      <!--data id="wave" compute="(position, normal) = xflow.mywave(position, normal, strength, wavelength, phase)" -->
+
+      <!-- javascript xflow simplex noise(xflow.mynoise) -->
+      <!--data id="wave" compute="(position, normal) = xflow.mynoise(position, normal, strength, wavelength, phase)" -->
         <!--float name="strength" id="strength">0.01</float-->
         <!--float name="wavelength" id="wavelength">1.0</float-->
         <!--float name="phase" id="ph">0.0</float-->

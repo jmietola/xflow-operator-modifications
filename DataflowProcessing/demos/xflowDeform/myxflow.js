@@ -502,7 +502,7 @@
                     increment = 1.5,
                     octaves = 5.5,
                     roughness = 0.025,
-                    nVertices = 4, // Caution fixed value here! Remove immediately!
+                    nVertices = 8, // Caution fixed value here! Remove immediately!
                 // Setup buffers
                     bufSize = nVertices * NUM_VERTEX_COMPONENTS * Float32Array.BYTES_PER_ELEMENT, // size in bytes
 
@@ -526,9 +526,9 @@
                     }
 
                     // Setup WebCL context using the default device of the first available platform
-                    initPosBuffer = buffers.initPosBuffer = ctx.createBuffer(WebCL.CL_MEM_READ_ONLY, bufSize);
-                    curNorBuffer = buffers.curNorBuffer = ctx.createBuffer(WebCL.CL_MEM_READ_ONLY, bufSize);
-                    curPosBuffer = buffers.curPosBuffer = ctx.createBuffer(WebCL.CL_MEM_WRITE_ONLY, bufSize);
+                    initPosBuffer = buffers.initPosBuffer = ctx.createBuffer(WebCL.CL_MEM_WRITE_ONLY, bufSize);
+                    curNorBuffer = buffers.curNorBuffer = ctx.createBuffer(WebCL.CL_MEM_READ_WRITE, bufSize);
+                    curPosBuffer = buffers.curPosBuffer = ctx.createBuffer(WebCL.CL_MEM_READ_WRITE, bufSize);
 
                 }
 
@@ -553,7 +553,6 @@
 
                 // Initial load of initial position data
                 cmdQueue.enqueueWriteBuffer(initPosBuffer, true, 0, bufSize, initPos, []);
-            //    cmdQueue.enqueueWriteBuffer(initPosBuffer, true, 0, bufSize, initNor, []);
 
                 cmdQueue.finish();
 
@@ -579,6 +578,7 @@
                 // Read the result buffer from OpenCL device
                 cmdQueue.enqueueReadBuffer(curPosBuffer, true, 0, bufSize, newPos , []);
                 cmdQueue.enqueueReadBuffer(curNorBuffer, true, 0, bufSize, newNor, []);
+                console.log(newPos);
 
                // shaderPass.draw();
 
@@ -642,7 +642,7 @@ Xflow.registerOperator("xflow.mygrid", {
 	}
 });
 
-Xflow.registerOperator("xflow.mywave", {
+Xflow.registerOperator("xflow.mynoise", {
 	outputs: [	{type: 'float3', name: 'position'},
 				{type: 'float3', name: 'normal'} ],
     params:  [  {type: 'float3', source: 'position' },
@@ -652,17 +652,17 @@ Xflow.registerOperator("xflow.mywave", {
                 {type: 'float',  source: 'phase'}],
     evaluate: function(newpos, newnormal, position, normal, strength, wavelength, phase, info) {
 
-       var test = new Date().getTime()/200;
+       var timer = new Date().getTime()/200;
 
 		for(var i = 0; i < info.iterateCount; i++) {
 			var offset = i*3;
 			var dist = Math.sqrt(position[offset]*position[offset]+position[offset+2]*position[offset+2]);
 			newpos[offset] = position[offset];
-			newpos[offset+1] = simplex.noise3D(position[offset] / 1, test / 512, position[offset+2]/1) - dist;
+			newpos[offset+1] = simplex.noise3D(position[offset] / 1, timer / 512, position[offset+2]/1) - dist;
 			newpos[offset+2] = position[offset+2];
 
-			var tmp = simplex.noise2D(position[offset] / 1024, position[offset+1] / 1024, test/512)- dist;
-            tmp+= simplex.noise2D(position[offset] / 1024, position[offset+1] / 1024, test/512)- dist;
+			var tmp = simplex.noise2D(position[offset] / 1024, position[offset+1] / 1024, timer/512)- dist;
+            tmp+= simplex.noise2D(position[offset] / 1024, position[offset+1] / 1024, timer/512)- dist;
             var dx = position[offset] / dist * tmp;
 			var dz = position[offset+2] / dist * tmp;
 
