@@ -502,7 +502,7 @@
                     increment = 1.5,
                     octaves = 5.5,
                     roughness = 0.025,
-                    nVertices = 4, // Caution fixed value here! Remove immediately!
+                    nVertices = 8, // Caution fixed value here! Remove immediately!
                 // Setup buffers
                     bufSize = nVertices * NUM_VERTEX_COMPONENTS * Float32Array.BYTES_PER_ELEMENT, // size in bytes
 
@@ -578,6 +578,7 @@
                 // Read the result buffer from OpenCL device
                 cmdQueue.enqueueReadBuffer(curPosBuffer, true, 0, bufSize, newPos , []);
                 cmdQueue.enqueueReadBuffer(curNorBuffer, true, 0, bufSize, newNor, []);
+                console.log(newPos);
 
                // shaderPass.draw();
 
