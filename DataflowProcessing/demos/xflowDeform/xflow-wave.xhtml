@@ -17,7 +17,7 @@
     <script type="text/javascript">
       // Init Slider Control
       function updateWaveConfig(){
-        $("#strength").text($("#slider_strength").slider("value")/1000);
+        $("#amplitude").text($("#slider_amplitude").slider("value")/100);
         $("#wavelength").text($("#slider_wavelength").slider("value"));
 
         var meshSize = $("#slider_meshsize").slider("value");
@@ -32,8 +32,8 @@
           slide: updateWaveConfig,
           change: updateWaveConfig
         });
-        $("#slider_strength").slider({min : 1, max: 20, value: 10});
-        $("#slider_wavelength").slider({min : 10, max: 100, value: 40});
+        $("#slider_amplitude").slider({min : 1, max: 100, value: 20});
+        $("#slider_wavelength").slider({min : 1, max: 100, value: 1});
         $("#slider_meshsize").slider({min : 10, max: 200, value: 50, step: 2});
         updateWaveConfig();
       });
@@ -89,15 +89,17 @@
 
       <!-- Transform Grid to Waves: -->
 
-    <data id="wave" compute="(position, normal) = xflow.clDeform(position, normal)" >
-      <data id="wave" compute="(position, normal) = xflow.clDeform(position, normal)" >
+    <data id="wave" compute="(position, normal) = xflow.clDeform(position, normal, amplitude , phase)" >
+      <data id="wave" compute="(position, normal) = xflow.clDeform(position, normal, amplitude , phase)" >
+        <float name="amplitude" id="amplitude">0.01</float>
+        <float name="phase" id="ph">0.0</float>
         <data src="#generatedGrid"/>
       </data>
     </data>
 
       <!-- javascript xflow simplex noise(xflow.mynoise) -->
-      <!--data id="wave" compute="(position, normal) = xflow.mynoise(position, normal, strength, wavelength, phase)" -->
-        <!--float name="strength" id="strength">0.01</float-->
+      <!--data id="wave" compute="(position, normal) = xflow.mynoise(position, normal, amplitude, wavelength, phase)" -->
+        <!--float name="amplitude" id="amplitude">0.01</float-->
         <!--float name="wavelength" id="wavelength">1.0</float-->
         <!--float name="phase" id="ph">0.0</float-->
         <!--data src="#generatedGrid"/-->
@@ -122,12 +124,12 @@
      </group>
     </xml3d>
 
-         <canvas id="debug" width="256" height="256" style="width:800px;height:600px;"></canvas>
+         <!--canvas id="debug" width="256" height="256" style="width:800px;height:600px;"></canvas-->
 
     <div class="controls" >
       <div class="option">
-        <label>Strength</label>
-        <div id="slider_strength" class="slider" ></div>
+        <label>Amplitude</label>
+        <div id="slider_amplitude" class="slider" ></div>
       </div>
       <div class="option">
         <label>Wavelength</label>
@@ -154,7 +156,7 @@
       lastTime = Date.now();
       mytime += diff / 500;
     }
-    window.setInterval(myupdate, 20);
+    window.setInterval(myupdate, 50);
     ]]>
   </script>
 
