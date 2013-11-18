@@ -45,7 +45,7 @@
    <h1>
     Wave it!
    </h1>
-    <xml3d id="myxml3d" class="xml3d" activeView="#Camera" style="background: black;" onload="init(event);"
+    <xml3d id="myxml3d" class="xml3d" activeView="#Camera" style="background: black;"
            xmlns="http://www.xml3d.org/2009/xml3d">
      <defs id="mainDef">
                 
@@ -146,12 +146,9 @@
     <![CDATA[
     /* Run timer for wave animation */
     var mytime = 0;
-    var fd = null, lastTime = Date.now(), dir = new XML3DVec3(), clock = 0;
-    var view = document.querySelector("view");
-
-    var update = function() {
+    var lastTime = Date.now();
+    var myupdate = function() {
       var phase = document.getElementById("ph")
-
       if (phase && phase._configured) {
         phase.textContent = ""+mytime;
       }
@@ -159,16 +156,8 @@
       lastTime = Date.now();
       mytime += diff / 500;
     }
+    window.setInterval(myupdate, 20);
     ]]>
-
-    var init = function(evt) {
-      if(!fd) {
-          var xml3d = document.querySelector("xml3d");
-          xml3d.addEventListener("framedrawn", update);
-          update();
-      }
-    }
-
   </script>
 
 
@@ -177,3 +166,4 @@
     <script type="text/javascript" src="./myxflow.js" />
   </body>
  </html>
+
