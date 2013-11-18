@@ -478,10 +478,12 @@
             ],
             params: [
                 {type: 'float3', source: 'normal' },
-                {type: 'float3',  source: 'position'}
+                {type: 'float3',  source: 'position'},
+                {type: 'float',  source: 'amplitude'},
+                {type: 'float',  source: 'phase'}
 
             ],
-            evaluate: function (newPos, newNor, normal, position) {
+            evaluate: function (newPos, newNor, normal, position, amplitude, phase) {
                 //console.time("clDesaturate");
 
                //passing xflow operators input data
@@ -496,12 +498,12 @@
 
                 // simulation parameters
                     frequency = 1.0,
-                    amplitude = 0.35,
-                    phase = 0.0,
+                    amplitude = amplitude[0],
+                    phase = phase[0],
                     lacunarity = 2.0,
                     increment = 1.5,
                     octaves = 15.5,
-                    roughness = 0.025,
+                    roughness = 1.025,
                 //calculate vertices
                     nVertices = (normal.length)/3,
                 // Setup buffers
@@ -514,6 +516,7 @@
                     globalWorkSize = [],
                     localWorkSize = [];
 
+            //        console.log(wavelength[0]);
 
 
               //  shaderPass.init();
@@ -649,10 +652,10 @@ Xflow.registerOperator("xflow.mynoise", {
 				{type: 'float3', name: 'normal'} ],
     params:  [  {type: 'float3', source: 'position' },
                 {type: 'float3', source: 'normal' },
-                {type: 'float',  source: 'strength'},
+                {type: 'float',  source: 'amplitude'},
                 {type: 'float',  source: 'wavelength'},
                 {type: 'float',  source: 'phase'}],
-    evaluate: function(newpos, newnormal, position, normal, strength, wavelength, phase, info) {
+    evaluate: function(newpos, newnormal, position, normal, amplitude, wavelength, phase, info) {
 
        var timer = new Date().getTime()/200;
 
