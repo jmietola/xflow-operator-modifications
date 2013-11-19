@@ -92,6 +92,9 @@
         });
     }());
 
+
+
+
     /**
      * WebCL accelerated Image Desaturation (gray scaling)
      */
@@ -491,13 +494,13 @@
 
 
                 // These should be set via initGL
-                    initPos= normal,//new Float32Array([-1.0, -1.0, 0.0, 1.0, -1.0, 0.0, -1.0, 1.0, 0.0, 1.0, 1.0, 0.0]), // initial vertex positions
-                    initNor = position,//new Float32Array([0.0 , 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0]), // initial vertex normals
+                    initPos= position,//new Float32Array([-1.0, -1.0, 0.0, 1.0, -1.0, 0.0, -1.0, 1.0, 0.0, 1.0, 1.0, 0.0]), // initial vertex positions
+                    initNor = normal,//new Float32Array([0.0 , 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0]), // initial vertex normals
                    // curPos = new Float32Array([-1.0, -1.0, 0.0, 1.0, -1.0, 0.0, -1.0, 1.0, 0.0, 1.0, 1.0, 0.0]), // current vertex positions
                    // curNor = new Float32Array([0.0 , 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0]), // current vertex normals
 
                 // simulation parameters
-                    frequency = 1.0,
+                    frequency = 0.8,
                     amplitude = amplitude[0],
                     phase = phase[0],
                     lacunarity = 2.0,
@@ -654,17 +657,17 @@ Xflow.registerOperator("xflow.mynoise", {
                 {type: 'float',  source: 'phase'}],
     evaluate: function(newpos, newnormal, position, normal, amplitude, wavelength, phase, info) {
 
-       var timer = new Date().getTime()/200;
+     //  var timer = new Date().getTime();
 
 		for(var i = 0; i < info.iterateCount; i++) {
 			var offset = i*3;
 			var dist = Math.sqrt(position[offset]*position[offset]+position[offset+2]*position[offset+2]);
 			newpos[offset] = position[offset];
-			newpos[offset+1] = simplex.noise3D(position[offset] / 1, timer / 512, position[offset+2]/1) - dist;
+			newpos[offset+1] = simplex.noise3D(position[offset] / 1,  phase[0], position[offset+2]/1) - dist;
 			newpos[offset+2] = position[offset+2];
 
-			var tmp = simplex.noise2D(position[offset] / 1024, position[offset+1] / 1024, timer/512)- dist;
-            tmp+= simplex.noise2D(position[offset] / 1024, position[offset+1] / 1024, timer/512)- dist;
+			var tmp = simplex.noise2D(position[offset] / 1024, position[offset+1] / 1024, phase[0])- dist;
+            tmp+= simplex.noise2D(position[offset] / 1024, position[offset+1] / 1024, phase[0])- dist;
             var dx = position[offset] / dist * tmp;
 			var dz = position[offset+2] / dist * tmp;
 
