@@ -454,7 +454,7 @@
 "                //vstore4_3(vertex, (size_t)index, output);  // mod: sg",
 "                int jj = 3*index;",
 "                output[jj  ] = vertex.x;",
-"                output[jj+1] = vertex.y;",
+"                output[jj+1] = ridgedmultifractal3d(sample, frequency, lacunarity, increment, octaves);",
 "                output[jj+2] = vertex.z;",
 
 "                //vstore4_3(normal, (size_t)index, normals); // mod: sg",
@@ -502,8 +502,8 @@
                     phase = phase[0],
                     lacunarity = 2.0,
                     increment = 1.5,
-                    octaves = 15.5,
-                    roughness = 1.025,
+                    octaves = 0.5,
+                    roughness = 0.025,
                 //calculate vertices
                     nVertices = (normal.length)/3,
                 // Setup buffers
@@ -515,9 +515,6 @@
 
                     globalWorkSize = [],
                     localWorkSize = [];
-
-            //        console.log(wavelength[0]);
-
 
               //  shaderPass.init();
                 // InitCLBuffers
