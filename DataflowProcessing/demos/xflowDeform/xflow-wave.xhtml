@@ -45,7 +45,7 @@
    <h1>
     Wave it!
    </h1>
-    <xml3d id="myxml3d" class="xml3d" activeView="#Camera" style="background: black;" onload="init(event);"
+    <xml3d id="myxml3d" class="xml3d" activeView="#Camera" style="background: white;" onload="init(event);"
            xmlns="http://www.xml3d.org/2009/xml3d">
      <defs id="mainDef">
                 
@@ -53,11 +53,11 @@
      
       <lightshader id="ls_Spot" script="urn:xml3d:lightshader:point">
        <float3 name="attenuation">1 1 1</float3>
-       <float3 name="intensity">1000 1000 1000</float3>
+       <float3 name="intensity">50 50 50</float3>
       </lightshader>
       
       <shader id="Material" script="urn:xml3d:shader:phong">
-       <float name="ambientIntensity">2.1</float>
+       <float name="ambientIntensity">1.1</float>
        <texture name="diffuseTexture">
            <!--<img src="water.jpg"/-->
            <!--<video src="../../assets/dizzy.ogv" autoplay="true"/>-->
@@ -69,7 +69,7 @@
       </shader>
      
       <transform id="t_Camera" rotation="-0.641815 0.733700 0.223063 1.145952" scale="1 1 1" translation="3.184399 3.711076 2.405665"/>
-      <transform id="t_Grid" rotation="1 0.000000 0.000000 0.000000" scale="25.000000 25.000000 25.000000" translation="0.000000 0.00 0.000000"/>
+      <transform id="t_Grid" rotation="1 0.000000 0.000000 0.000000" scale="1.000000 1.000000 1.000000" translation="0.000000 0.00 0.000000"/>
       <transform id="t_Lamp" rotation="0.205942 0.331517 0.920698 1.926274" scale="1 1 1" translation="2.086632 10.648042 1.161145"/>
       
       <!-- Example Data: -->
@@ -84,7 +84,7 @@
       <!-- Generate Grid: -->    
 
       <data id="generatedGrid" compute="(position, normal, texcoord, index) = xflow.mygrid(size)">
-		    <int name="size" id="size">500</int>
+		    <int name="size" id="size">5000</int>
 	    </data>
 
       <!-- Transform Grid to Waves: -->
@@ -105,7 +105,6 @@
         <!--data src="#generatedGrid"/-->
       <!--/data-->
 
-      
      </defs>
      
      <view id="Camera" orientation="-0.3941052556037903 0.9096987843513489 0.13087835907936096 0.8260897732744243" position="13.423173904418945 6.755307197570801 14.065818786621094"/>
@@ -157,7 +156,7 @@
       }
       var diff = Date.now() - lastTime;
       lastTime = Date.now();
-      mytime += diff / 500;
+      mytime += diff / 100000;
     }
     ]]>
 
