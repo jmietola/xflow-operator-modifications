@@ -73,7 +73,7 @@
        <texture name="diffuseTexture">
            <!--img src="../../assets/water.jpg"/-->
            <!--<video src="../../assets/dizzy.ogv" autoplay="true"/>-->
-           <img src="../../assets/test.jpg"/>
+           <img src="../../assets/lava2.jpeg"/>
        </texture>
        <float3 name="diffuseColor">1 1 1</float3>
        <float3 name="specularColor">0.5 0.5 0.5</float3>
@@ -101,8 +101,8 @@
 
       <!-- Transform Grid to Waves: -->
 
-    <data id="wavez" compute="(position, normal) = xflow.mynoise(normal, position, amplitude , wavelength, phase)" >
-      <data id="wave" compute="(position, normal) = xflow.clDeform(normal, position, amplitude , phase)" >
+    <data id="wavez" compute="(position, normal) = xflow.mynoise(position, normal, amplitude , wavelength, phase)" >
+      <data id="wave" compute="(position, normal) = xflow.clDeform(position, normal, amplitude , phase)" >
         <float name="amplitude" id="amplitude">0.01</float>
         <float name="wavelength" id="wavelength">1.0</float>
         <float name="phase" id="ph">0.0</float>
