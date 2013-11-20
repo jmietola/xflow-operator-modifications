@@ -176,6 +176,133 @@
         });
     }());
 
+
+   (function () {
+        webcl.kernels.register("clParticle",
+            ["__kernel void clParticle(__global float4* pos, __global float4* color, __global float4* vel, __global float4* pos_gen, __global float4* vel_gen, float dt)",
+                "{",
+                "unsigned int i = get_global_id(0);",
+                "float4 p = pos[i];",
+                "float4 v = vel[i];",
+                "float life = vel[i].w;",
+                "life -= dt;",
+                "if(life <= 0.f)",
+                "{",
+                "    p = pos_gen[i];",
+                "    v = vel_gen[i];",
+                "    life = 1.0f;",
+                "}",
+                "v.z -= 9.8f*dt;",
+                "p.x += v.x*dt;",
+                "p.y += v.y*dt;",
+                "p.z += v.z*dt;",
+                "v.w = life;",
+                "pos[i] = p;",
+                "vel[i] = v;",
+                "color[i].w = life;",
+                "}"].join("\n"));
+
+        var kernel = webcl.kernels.getKernel("clParticle"),
+            oldBufSize = 0,
+            buffers = {initPosBuffer: null, initColorBuffer: null, initVelBuffer: null,genPosBuffer: null, genVelBuffer: null};
+
+
+        Xflow.registerOperator("xflow.clParticle", {
+            outputs: [
+                {type: 'float3', name: 'result', sizeof: 'position'},
+                {type: 'float3', name: 'result', sizeof: 'velocity'}
+            ],
+            params: [
+                {type: 'float3', source: 'position' },
+                {type: 'float3',  source: 'color'},
+                {type: 'float',  source: 'velocity'}
+
+            ],
+
+            evaluate: function (newPos, newVel, position, color, velocity) {
+                var initPosBuffer = buffers.initPosBuffer,
+                initColorBuffer = buffers.initColorBuffer,
+                initVelBuffer = buffers.initVelBuffer,
+                genPosBuffer = buffers.genPosBuffer,
+                genVelBuffer = buffers.genVelBuffer,
+
+                globalWorkSize = [],
+                localWorkSize = [],
+
+                num = (position.length) / 3,
+                bufSize = num * Float32Array.BYTES_PER_ELEMENT;
+
+                // InitCLBuffers
+                if (bufSize !== oldBufSize) {
+                    oldBufSize = bufSize;
+
+                    if (initPosBuffer && initColorBuffer && initVelBuffer && genPosBuffer && genVelBuffer) {
+                        initPosBuffer.release();
+                        initColorBuffer.release();
+                        initVelBuffer.release();
+                        genPosBuffer.release();
+                        genVelBuffer.release();
+                    }
+
+                    // Setup WebCL context using the default device of the first available platform
+                    initPosBuffer = buffers.initPosBuffer = ctx.createBuffer(WebCL.CL_MEM_READ_WRITE, bufSize);
+                    initColorBuffer = buffers.initColorBuffer = ctx.createBuffer(WebCL.CL_MEM_READ_WRITE, bufSize);
+                    initVelBuffer = buffers.initVelBuffer = ctx.createBuffer(WebCL.CL_MEM_WRITE_ONLY, bufSize);
+                    genPosBuffer = buffers.genPosBuffer = ctx.createBuffer(WebCL.CL_MEM_WRITE_ONLY, bufSize);
+                    genVelBuffer = buffers.genVelBuffer = ctx.createBuffer(WebCL.CL_MEM_WRITE_ONLY, bufSize);
+
+                }
+
+                // Get the maximum work group size for executing the kernel on the device
+                //
+                var workGroupSize = kernel.getWorkGroupInfo(webcl.devices[0], WebCL.CL_KERNEL_WORK_GROUP_SIZE);
+
+                globalWorkSize[0] = 1;
+                globalWorkSize[1] = 1;
+                while(globalWorkSize[0] * globalWorkSize[1] < num) {
+                    globalWorkSize[0] = globalWorkSize[0] * 2;
+                    globalWorkSize[1] = globalWorkSize[1] * 2;
+                }
+
+                localWorkSize[0] = globalWorkSize[0];
+                localWorkSize[1] = globalWorkSize[1];
+                while (localWorkSize[0] * localWorkSize[1] > workGroupSize) {
+                    localWorkSize[0] = localWorkSize[0] / 2;
+                    localWorkSize[1] = localWorkSize[1] / 2;
+                }
+
+                // Initial load of initial position data
+                cmdQueue.enqueueWriteBuffer(initVelBuffer, true, 0, bufSize, velocity[0], []);
+                cmdQueue.enqueueWriteBuffer(genPosBuffer, true, 0, bufSize, position[0], []);
+                cmdQueue.enqueueWriteBuffer(genVelBuffer, true, 0, bufSize, velocity[0], []);
+
+                cmdQueue.finish();
+
+                // Set arguments of kernel
+                kernel.setArg(0, initPosBuffer);
+                kernel.setArg(1, initColorBuffer);
+                kernel.setArg(2, new Float32Array([initVelBuffer]));
+                kernel.setArg(3, new Float32Array([genPosBuffer]));
+                kernel.setArg(4, new Float32Array([genVelBuffer]));
+
+                //Wait for the command queue to finish these commands before proceeding
+                queue.finish();
+
+                // Run kernel
+                var dt = .01;
+                kernel.setArg(5, dt); //pass in the timestep
+                // Execute (enqueue) kernel
+                cmdQueue.enqueueNDRangeKernel(kernel, globalWorkSize.length, [], globalWorkSize, localWorkSize, []);
+
+                cmdQueue.finish();
+
+                return true;
+            }
+
+        });
+    }());
+
+
     (function () {
         webcl.kernels.register("clDeform",
             ["        __constant int P_MASK = 255;",
@@ -470,34 +597,25 @@
 
         var kernel = webcl.kernels.getKernel("clDeform"),
             oldBufSize = 0,
-            buffers = {bufIn: null, bufOut: null};
-
-
+            buffers = {initPosBuffer: null, curPosBuffer: null, curNorBuffer: null};
 
         Xflow.registerOperator("xflow.clDeform", {
             outputs: [
-                {type: 'float3', name: 'normal'},
-                {type: 'float3', name: 'position'}
+                {type: 'float3', name: 'position'},
+                {type: 'float3', name: 'normal'}
             ],
             params: [
-                {type: 'float3', source: 'normal' },
-                {type: 'float3',  source: 'position'},
+                {type: 'float3', source: 'position' },
+                {type: 'float3',  source: 'normal'},
                 {type: 'float',  source: 'amplitude'},
                 {type: 'float',  source: 'phase'}
 
             ],
-            evaluate: function (newPos, newNor, normal, position, amplitude, phase) {
-                //console.time("clDesaturate");
-
-               //passing xflow operators input data
+            evaluate: function (newPos, newNor, position, normal, amplitude, phase) {
+                //passing xflow operators input data
                 var NUM_VERTEX_COMPONENTS = 3,
 
-
-                // These should be set via initGL
-                    initPos= position,//new Float32Array([-1.0, -1.0, 0.0, 1.0, -1.0, 0.0, -1.0, 1.0, 0.0, 1.0, 1.0, 0.0]), // initial vertex positions
-                    initNor = normal,//new Float32Array([0.0 , 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0]), // initial vertex normals
-                   // curPos = new Float32Array([-1.0, -1.0, 0.0, 1.0, -1.0, 0.0, -1.0, 1.0, 0.0, 1.0, 1.0, 0.0]), // current vertex positions
-                   // curNor = new Float32Array([0.0 , 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0]), // current vertex normals
+                    initPos= position,
 
                 // simulation parameters
                     frequency = 0.8,
@@ -507,8 +625,10 @@
                     increment = 1.5,
                     octaves = 0.5,
                     roughness = 0.025,
+
                 //calculate vertices
-                    nVertices = (normal.length)/3,
+                    nVertices = (position.length)/3,
+
                 // Setup buffers
                     bufSize = nVertices * NUM_VERTEX_COMPONENTS * Float32Array.BYTES_PER_ELEMENT, // size in bytes
 
@@ -519,9 +639,7 @@
                     globalWorkSize = [],
                     localWorkSize = [];
 
-              //  shaderPass.init();
                 // InitCLBuffers
-
                 if (bufSize !== oldBufSize) {
                     oldBufSize = bufSize;
 
@@ -540,7 +658,6 @@
 
                 // Get the maximum work group size for executing the kernel on the device
                 //
-
                 var workGroupSize = kernel.getWorkGroupInfo(webcl.devices[0], WebCL.CL_KERNEL_WORK_GROUP_SIZE);
 
                 globalWorkSize[0] = 1;
@@ -563,7 +680,6 @@
                 cmdQueue.finish();
 
                 // SimulateCL
-
                 kernel.setArg(0, initPosBuffer);
                 kernel.setArg(1, curNorBuffer);
                 kernel.setArg(2, curPosBuffer);
@@ -585,9 +701,6 @@
                 cmdQueue.enqueueReadBuffer(curPosBuffer, true, 0, bufSize, newPos , []);
                 cmdQueue.enqueueReadBuffer(curNorBuffer, true, 0, bufSize, newNor, []);
 
-               // shaderPass.draw();
-
-                //console.timeEnd("clDesaturate");
                 return true;
             }
         });
@@ -656,9 +769,6 @@ Xflow.registerOperator("xflow.mynoise", {
                 {type: 'float',  source: 'wavelength'},
                 {type: 'float',  source: 'phase'}],
     evaluate: function(newpos, newnormal, position, normal, amplitude, wavelength, phase, info) {
-
-     //  var timer = new Date().getTime();
-
 		for(var i = 0; i < info.iterateCount; i++) {
 			var offset = i*3;
 			var dist = Math.sqrt(position[offset]*position[offset]+position[offset+2]*position[offset+2]);
