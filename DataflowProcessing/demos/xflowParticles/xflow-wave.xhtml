@@ -87,7 +87,8 @@
       <!-- Example Data: -->
 
       <data id="exampleGrid" >
-        <float3 name="position">-1 0 -1  -1 0 0  -1 0 1    1 0 -1  0 0 0  0 0 1    1 0 -1  1 1 1  1 0 1</float3>
+        <float3 name="position">-1 0 -1  -1 0 0  -1 0 1    1 0 -1  0 0 0  1 0 1    1 0 -1  1 1 1  1 0 1</float3>
+        <float3 name="velocity">-1 0 -1  -1 0 0  -1 0 1    1 0 -1  0 0 0  0 0 1    1 0 -1  1 1 1  1 0 1</float3>
         <float3 name="normal">0 1 0  0 1 0  0 1 0    0 1 0  0 1 0  0 1 0    0 1 0  0 1 0  0 1 0</float3>
         <float2 name="texcoord">0 0  0 0.5  0 1    0.5 0  0.5 0.5  0.5 1    1 0  1 0.5  1 1</float2>
         <int name="index">0 1 3  1 3 4    1 2 4  2 4 5    3 4 6  4 6 7    4 5 7  5 7 8 </int>
@@ -95,16 +96,16 @@
 
       <!-- Generate Grid: -->    
 
-      <data id="generatedGrid" compute="(position, normal, texcoord, index) = xflow.mygrid(size)">
+      <data id="generatedGrid" compute="(position, velocity, normal, texcoord, index) = xflow.mygrid(size)">
 		    <int name="size" id="size"></int>
 	    </data>
 
       <!-- Transform Grid to Waves: -->
-   <data id="wave" compute="(position) = xflow.clParticle(position, velocity)" >
+   <data id="wave" compute="(position, velocity) = xflow.clParticle(position, velocity, phase)" >
    <!--data id="wave" compute="(position, normal) = xflow.clParticle(position, color, velocity)" -->
     <!--data id="wavez" compute="(position, normal) = xflow.mynoise(position, normal, amplitude , wavelength, phase)" -->
       <!--data id="wave" compute="(position, normal) = xflow.clDeform(position, normal, amplitude , phase)" -->
-        <float3 name="velocity">-1 0 -1  -1 0 0  -1 0 1    1 0 -1  0 0 0  0 0 1    1 0 -1  1 1 1  1 0 1</float3>
+
         <float name="amplitude" id="amplitude">0.01</float>
         <float name="phase" id="ph">0.0</float>
         <data src="#exampleGrid"/>
@@ -119,7 +120,7 @@
      <!-- Wave Shape Display: -->
 
      <group shader="#Material" transform="#t_Grid">
-      <mesh type="points">
+      <mesh type="lines">
         <data src="#wave"/>
       </mesh>
      </group>
