@@ -268,16 +268,18 @@
 
         Xflow.registerOperator("xflow.clParticle", {
             outputs: [
-                {type: 'float3', name: 'position'}
+                {type: 'float3', name: 'position'},
+                {type: 'float3', name: 'velocity'}
 
             ],
             params: [
                 {type: 'float3', source: 'position' },
-                {type: 'float3', source: 'velocity' }
+                {type: 'float3', source: 'velocity' },
+                {type: 'float', source: 'phase' }
 
             ],
 
-            evaluate: function (newPos, position, velocity) {
+            evaluate: function (newPos, newVel, position, velocity, phase) {
                 var curPosBuffer = buffers.curPosBuffer,
                 curVelBuffer = buffers.curVelBuffer,
                 nxtPosBuffer = buffers.nxtPosBuffer,
@@ -288,14 +290,14 @@
 
                 POS_ATTRIB_SIZE = 3,
                 DT = 0.005,
-                EPSSQR = 50,
+                EPSSQR = 40,
 
                 particles = (position.length) / 3,
                 curPos= position,
                 curVel = velocity,
 
                 bufSize = particles * POS_ATTRIB_SIZE * Float32Array.BYTES_PER_ELEMENT;
-                console.log(bufSize);
+
                 // InitCLBuffers
                 if (bufSize !== oldBufSize) {
                     oldBufSize = bufSize;
@@ -314,8 +316,6 @@
                     nxtVelBuffer = buffers.nxtVelBuffer = ctx.createBuffer(WebCL.CL_MEM_READ_WRITE, bufSize);
 
                 }
-
-
 
                 // Get the maximum work group size for executing the kernel on the device
                 //
@@ -366,13 +366,13 @@
                 cmdQueue.finish();
 
                 curPosBuffer = nxtPosBuffer;
-           //     curVelBuffer = nxtVelBuffer;
+                curVelBuffer = nxtVelBuffer;
                 // enqueueCopyBuffer
              //   cmdQueue.enqueueCopyBuffer(nxtPosBuffer, curPosBuffer, 0, 0, bufSize, []);
              //   cmdQueue.enqueueCopyBuffer(nxtVelBuffer, curVelBuffer, 0, 0, bufSize, []);
 
                 cmdQueue.enqueueReadBuffer(curPosBuffer, true, 0, bufSize, newPos, []);
-          //      cmdQueue.enqueueReadBuffer(curVelBuffer, true, 0, bufSize, newVel, []);
+                cmdQueue.enqueueReadBuffer(curVelBuffer, true, 0, bufSize, newVel, []);
 
                 cmdQueue.finish();
 
@@ -1192,6 +1192,7 @@
 
 Xflow.registerOperator("xflow.mygrid", {
     outputs: [	{type: 'float3', name: 'position', customAlloc: true},
+                {type: 'float3', name: 'velocity', customAlloc: true},
 				{type: 'float3', name: 'normal', customAlloc: true},
 				{type: 'float2', name: 'texcoord', customAlloc: true},
 				{type: 'int', name: 'index', customAlloc: true}],
@@ -1200,11 +1201,12 @@ Xflow.registerOperator("xflow.mygrid", {
     {
         var s = size[0];
         sizes['position'] = s* s;
+        sizes['velocity'] = s* s;
         sizes['normal'] = s* s;
         sizes['texcoord'] = s* s;
         sizes['index'] = (s-1) * (s-1) * 6;
     },
-    evaluate: function(position, normal, texcoord, index, size) {
+    evaluate: function(position, velocity, normal, texcoord, index, size) {
 		var s = size[0];
 
         // Create Positions
@@ -1213,6 +1215,14 @@ Xflow.registerOperator("xflow.mygrid", {
 			position[offset] =  (((i % s) / (s-1))-0.5)*2;
 			position[offset+1] = 0;
 			position[offset+2] = ((Math.floor(i/s) / (s-1))-0.5)*2;
+		}
+
+        // Create velocity
+		for(var i = 0; i < velocity.length / 3; i++) {
+			var offset = i*3;
+			velocity[offset] =  (((i % s) / (s-1))-0.5)*2;
+			velocity[offset+1] = 0;
+			velocity[offset+2] = ((Math.floor(i/s) / (s-1))-0.5)*2;
 		}
 
         // Create Normals
