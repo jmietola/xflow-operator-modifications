@@ -1220,9 +1220,9 @@ Xflow.registerOperator("xflow.mygrid", {
         // Create velocity
 		for(var i = 0; i < velocity.length / 3; i++) {
 			var offset = i*3;
-			velocity[offset] =  (((i % s) / (s-1))-0.5)*2;
+			velocity[offset] =  0;
 			velocity[offset+1] = 0;
-			velocity[offset+2] = ((Math.floor(i/s) / (s-1))-0.5)*2;
+			velocity[offset+2] = 0;
 		}
 
         // Create Normals
