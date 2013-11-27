@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ <html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <!-- Style -->
+
+    <link rel="stylesheet" type="text/css" media="all" href="../../css/jquery-ui.css"/>
+    <!-- Scripts -->
+    <script type="text/javascript" src="../../deps/xml3d.js"></script>
+    <script type="text/javascript" src="../../deps/jquery-1.8.1.min.js"></script>
+    <script type="text/javascript" src="../../deps/jquery-ui-1.8.23.min.js"></script>
+    <script type="text/javascript" src="../../deps/xml3d-camera.js"></script>
+    <script type="text/javascript" src="../../deps/webcl.js"></script>
+
+    <script type="text/javascript" src="../../deps/simplex-noise.min.js" />
+
+    <title>XML3D Examples</title>
+    <script type="text/javascript">
+      // Init Slider Control
+      function updateWaveConfig(){
+        $("#amplitude").text($("#slider_amplitude").slider("value")/100);
+        $("#wavelength").text($("#slider_wavelength").slider("value"));
+
+        var meshSize = $("#slider_meshsize").slider("value");
+        $("#size").text(meshSize);
+        $("#meshsize_value").text(meshSize*meshSize);
+      }
+
+      $(function(){
+        $( ".slider").slider({
+          orientation: "horizontal",
+          range: "min",
+          slide: updateWaveConfig,
+          change: updateWaveConfig
+        });
+        $("#slider_amplitude").slider({min : 1, max: 100, value: 20});
+        $("#slider_wavelength").slider({min : 1, max: 100, value: 1});
+        $("#slider_meshsize").slider({min : 10, max: 1000, value: 20, step: 2});
+        updateWaveConfig();
+      });
+    </script>
+
+  </head>
+  <body>
+  <div id="overall"><div id="content">
+   <h1>
+    Wave it!
+   </h1>
+    <xml3d id="myxml3d" class="xml3d" activeView="#Camera" style="background: black;" onload="init(event);"
+           xmlns="http://www.xml3d.org/2009/xml3d">
+     <defs id="mainDef">
+                
+      <!--- Not so important part: -->
+     
+      <lightshader id="ls_Spot" script="urn:xml3d:lightshader:point">
+       <float3 name="attenuation">1 1 1</float3>
+       <float3 name="intensity">50 50 50</float3>
+      </lightshader>
+      
+      <shader id="Material" script="urn:xml3d:shader:phong">
+       <float name="ambientIntensity">1.1</float>
+       <texture name="diffuseTexture">
+           <!--img src="../../assets/water.jpg"/-->
+           <!--<video src="../../assets/dizzy.ogv" autoplay="true"/>-->
+           <img src="../../assets/particle.jpeg"/>
+       </texture>
+       <float3 name="diffuseColor">1 1 1</float3>
+       <float3 name="specularColor">0.5 0.5 0.5</float3>
+       <float name="shininess">0.0978473581213</float>
+      </shader>
+
+      <shader id="Material2" script="urn:xml3d:shader:phong">
+       <float name="ambientIntensity">1.1</float>
+       <texture name="diffuseTexture">
+           <!--img src="../../assets/water.jpg"/-->
+           <!--<video src="../../assets/dizzy.ogv" autoplay="true"/>-->
+           <img src="../../assets/test.jpg"/>
+       </texture>
+       <float3 name="diffuseColor">1 1 1</float3>
+       <float3 name="specularColor">0.5 0.5 0.5</float3>
+       <float name="shininess">0.0978473581213</float>
+      </shader>
+     
+      <transform id="t_Camera" rotation="-0.641815 0.733700 0.223063 1.145952" scale="1 1 1" translation="3.184399 3.711076 2.405665"/>
+      <transform id="t_Grid" rotation="1 0.000000 0.000000 0.000000" scale="25.000000 25.000000 25.000000" translation="0.000000 0.00 0.000000"/>
+      <transform id="t_Lamp" rotation="0.205942 0.331517 0.920698 1.926274" scale="1 1 1" translation="2.086632 10.648042 1.161145"/>
+      
+      <!-- Example Data: -->
+
+      <data id="exampleGrid" >
+        <float3 name="position">-1 0 -1  -1 0 0  -1 0 1    1 0 -1  0 0 0  1 0 1    1 0 -1  1 1 1  1 0 1</float3>
+        <float3 name="velocity">0 0 0  0 0 0  0 0 0    0 0 0  0 0 0  0 0 0    0 0 0  0 0 0  0 0 0</float3>
+        <float3 name="normal">0 1 0  0 1 0  0 1 0    0 1 0  0 1 0  0 1 0    0 1 0  0 1 0  0 1 0</float3>
+        <float2 name="texcoord">0 0  0 0.5  0 1    0.5 0  0.5 0.5  0.5 1    1 0  1 0.5  1 1</float2>
+        <int name="index">0 1 3  1 3 4    1 2 4  2 4 5    3 4 6  4 6 7    4 5 7  5 7 8 </int>
+      </data>
+
+      <!-- Generate Grid: -->    
+
+      <data id="generatedGrid" compute="(position, velocity, normal, texcoord, index) = xflow.mygrid(size)">
+		    <int name="size" id="size">2</int>
+	    </data>
+
+      <!-- Transform Grid to Waves: -->
+
+   <data id="wave" compute="(position, velocity) = xflow.clParticle(position, velocity, phase)" >
+        <!--float name="amplitude" id="amplitude">0.01</float-->
+        <float name="phase" id="ph">0.0</float>
+        <data src="#exampleGrid"/>
+   </data>
+
+     </defs>
+     
+     <view id="Camera" orientation="-0.3941052556037903 0.9096987843513489 0.13087835907936096 0.8260897732744243" position="13.423173904418945 6.755307197570801 14.065818786621094"/>
+     
+     <!-- Wave Shape Display: -->
+
+     <group shader="#Material" transform="#t_Grid">
+      <mesh type="lines">
+        <data src="#wave"/>
+      </mesh>
+     </group>
+
+     <!--group shader="#Material2" transform="#t_Grid"-->
+      <!--mesh type="triangles"-->
+        <!--data src="#wavez"/-->
+      <!--/mesh-->
+     <!--/group-->
+     
+     <!-- Light Source: -->     
+     <group transform="#t_Lamp">
+		<light shader="#ls_Spot"/>
+     </group>
+    </xml3d>
+
+         <!--canvas id="debug" width="256" height="256" style="width:800px;height:600px;"></canvas-->
+
+    <div class="controls" >
+      <div class="option">
+        <label>Amplitude</label>
+        <div id="slider_amplitude" class="slider" ></div>
+      </div>
+      <div class="option">
+        <label>Wavelength</label>
+        <div id="slider_wavelength" class="slider"></div>
+      </div>
+      <div class="option">
+        <label>Mesh Size</label>
+        <div id="slider_meshsize" class="slider"></div>
+        <div class="info" ><span id="meshsize_value" ></span> vertices</div>
+      </div>
+    </div>
+
+    <script type="text/javascript">
+    <![CDATA[
+    /* Run timer for wave animation */
+    var mytime = 0;
+    var fd = null, lastTime = Date.now(), dir = new XML3DVec3(), clock = 0;
+    var view = document.querySelector("view");
+
+    var update = function() {
+      var phase = document.getElementById("ph");
+
+      if (phase && phase._configured) {
+        phase.textContent = ""+mytime;
+      }
+      var diff = Date.now() - lastTime;
+      lastTime = Date.now();
+      mytime += diff / 100000;
+    }
+    ]]>
+
+    var init = function(evt) {
+      if(!fd) {
+          var xml3d = document.querySelector("xml3d");
+          xml3d.addEventListener("framedrawn", update);
+          update();
+      }
+
+    var observer = new XML3DDataObserver( observerCallBack );
+
+    var dataNodes = document.getElementsByTagName("data");
+
+    // Observe all changes
+    observer.observe(dataNodes[0]);
+
+    // Observe any change modifying the "position" value
+    observer.observe(dataNodes[1], "position");
+    // Observe any change modifying the "position" or "normal" value
+    observer.observe(dataNodes[2], ["position", "velocity"]);
+
+    function observerCallBack(records, observer){
+        for(var i = 0; i &lt; records.length; ++i){
+            var node = records[i].target; // The node of which the result has changed
+            var result = records[i].result; // The data result of the observed node
+
+            //get newPosition and add it to exampleGrid position
+            var string = null;
+            for(i=0; i &lt; result._entries.position.value.length; i++){
+                string += result._entries.position.value[i];
+                string += " ";
+            }
+
+            document.getElementById("exampleGrid").childNodes[1].childNodes[0].nodeValue = string.trim();
+
+            var div = document.getElementById("exampleGrid");
+
+            for (i=0; i &lt; div.childNodes.length; i++){
+                for(ii=0; ii &lt;div.childNodes[i].childNodes.length; ii++){
+                console.log(div.childNodes[i].childNodes[ii].nodeValue);
+                    if(i==1 &amp;&amp; ii==0){
+                        // Do something here
+                    }
+                }
+            }
+
+            if(false){
+                observer.disconnect(); // Stop observation of all nodes
+            }
+        }
+    }
+    }
+
+  </script>
+
+   </div></div>
+    <script type="text/javascript" src="./myxflow.js" />
+  </body>
+ </html>
