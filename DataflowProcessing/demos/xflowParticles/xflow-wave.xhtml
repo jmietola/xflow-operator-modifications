@@ -11,7 +11,7 @@
     <script type="text/javascript" src="../../deps/xml3d-camera.js"></script>
     <script type="text/javascript" src="../../deps/webcl.js"></script>
 
-    <script type="text/javascript" src="../../deps/simplex-noise.min.js"> </script>
+    <script type="text/javascript" src="../../deps/simplex-noise.min.js" />
 
     <title>XML3D Examples</title>
     <script type="text/javascript">
@@ -194,13 +194,21 @@
             var result = records[i].result; // The data result of the observed node
 
             //get newPosition and add it to exampleGrid position
-            var string = null;
+            var buildPosition = null;
             for(i=0; i &lt; result._entries.position.value.length; i++){
-                string += result._entries.position.value[i];
-                string += " ";
+                buildPosition += result._entries.position.value[i];
+                buildPosition += " ";
             }
 
-            document.getElementById("exampleGrid").childNodes[1].childNodes[0].nodeValue = string.trim();
+            //get newVelocity and add it to exampleGrid velocity
+            var buildVelocity = null;
+            for(i=0; i &lt; result._entries.velocity.value.length; i++){
+                buildVelocity += result._entries.velocity.value[i];
+                buildVelocity += " ";
+            }
+
+            document.getElementById("exampleGrid").childNodes[1].childNodes[0].nodeValue = buildPosition.trim();
+            document.getElementById("exampleGrid").childNodes[1].childNodes[1].nodeValue = buildVelocity.trim();
 
             var div = document.getElementById("exampleGrid");
 

@@ -297,38 +297,6 @@
 
                 bufSize = particles * POS_ATTRIB_SIZE * Float32Array.BYTES_PER_ELEMENT;
 
-                // particles are on the edge of a ring in z=0 plane,  C=(0,0,0), r=0.5
-                //
-                function InitParticlesOnRing() {
-                    for (var i=0; i < particles; i++)  {
-                        var r = 0.5;
-                        var theta = 2 * Math.PI * Math.random();
-
-                        var x = r * Math.sin(theta);
-                        var y = r * Math.cos(theta);
-                        var z = 0;
-                        var vx = 0;
-                        var vy = 0;
-                        var vz = 0;
-                        InitParticle(i, x, y, z, vx, vy, vz);
-                    }
-                }
-
-                function InitParticle(i, x, y, z, vx, vy, vz) {
-                var ii = 3*i;
-
-                curPos[ii + 0] = x;
-                curPos[ii + 1] = y;
-                curPos[ii + 2] = z;
-          //      curPos[ii + 3] = 500;
-
-                curVel[ii + 0] = vx;
-                curVel[ii + 1] = vy;
-                curVel[ii + 2] = vz;
-                }
-
-                InitParticlesOnRing();
-
                 console.log(curPos);
 
                 // InitCLBuffers
@@ -342,6 +310,37 @@
                         nxtVelBuffer.release();
                     }
 
+                    // particles are on the edge of a ring in z=0 plane,  C=(0,0,0), r=0.5
+                    //
+                    function InitParticlesOnRing() {
+                        for (var i=0; i < particles; i++)  {
+                            var r = 0.5;
+                            var theta = 2 * Math.PI * Math.random();
+
+                            var x = r * Math.sin(theta);
+                            var y = r * Math.cos(theta);
+                            var z = 0;
+                            var vx = 0;
+                            var vy = 0;
+                            var vz = 0;
+                            InitParticle(i, x, y, z, vx, vy, vz);
+                        }
+                    }
+
+                    function InitParticle(i, x, y, z, vx, vy, vz) {
+                    var ii = 3*i;
+
+                    curPos[ii + 0] = x;
+                    curPos[ii + 1] = y;
+                    curPos[ii + 2] = z;
+              //      curPos[ii + 3] = 500;
+
+                    curVel[ii + 0] = vx;
+                    curVel[ii + 1] = vy;
+                    curVel[ii + 2] = vz;
+                    }
+
+                    InitParticlesOnRing();
                     // Setup WebCL context using the default device of the first available platform
                     curPosBuffer = buffers.curPosBuffer = ctx.createBuffer(WebCL.CL_MEM_READ_WRITE, bufSize);
                     curVelBuffer = buffers.curVelBuffer = ctx.createBuffer(WebCL.CL_MEM_READ_WRITE, bufSize);
