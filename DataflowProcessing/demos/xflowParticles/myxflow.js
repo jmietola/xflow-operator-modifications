@@ -265,7 +265,6 @@
             oldBufSize = 0,
             buffers = {curPosBuffer: null, curVelBuffer: null, nxtPosBuffer: null, nxtVelBuffer: null};
 
-
         Xflow.registerOperator("xflow.clParticle", {
             outputs: [
                 {type: 'float3', name: 'position'},
@@ -298,6 +297,40 @@
 
                 bufSize = particles * POS_ATTRIB_SIZE * Float32Array.BYTES_PER_ELEMENT;
 
+                // particles are on the edge of a ring in z=0 plane,  C=(0,0,0), r=0.5
+                //
+                function InitParticlesOnRing() {
+                    for (var i=0; i < particles; i++)  {
+                        var r = 0.5;
+                        var theta = 2 * Math.PI * Math.random();
+
+                        var x = r * Math.sin(theta);
+                        var y = r * Math.cos(theta);
+                        var z = 0;
+                        var vx = 0;
+                        var vy = 0;
+                        var vz = 0;
+                        InitParticle(i, x, y, z, vx, vy, vz);
+                    }
+                }
+
+                function InitParticle(i, x, y, z, vx, vy, vz) {
+                var ii = 3*i;
+
+                curPos[ii + 0] = x;
+                curPos[ii + 1] = y;
+                curPos[ii + 2] = z;
+          //      curPos[ii + 3] = 500;
+
+                curVel[ii + 0] = vx;
+                curVel[ii + 1] = vy;
+                curVel[ii + 2] = vz;
+                }
+
+                InitParticlesOnRing();
+
+                console.log(curPos);
+
                 // InitCLBuffers
                 if (bufSize !== oldBufSize) {
                     oldBufSize = bufSize;
@@ -314,6 +347,12 @@
                     curVelBuffer = buffers.curVelBuffer = ctx.createBuffer(WebCL.CL_MEM_READ_WRITE, bufSize);
                     nxtPosBuffer = buffers.nxtPosBuffer = ctx.createBuffer(WebCL.CL_MEM_READ_WRITE, bufSize);
                     nxtVelBuffer = buffers.nxtVelBuffer = ctx.createBuffer(WebCL.CL_MEM_READ_WRITE, bufSize);
+
+                    // Initial load of initial position data
+                    cmdQueue.enqueueWriteBuffer(curPosBuffer, true, 0, bufSize, curPos, []);
+                    cmdQueue.enqueueWriteBuffer(curVelBuffer, true, 0, bufSize, curVel, []);
+
+                    cmdQueue.finish();
 
                 }
 
@@ -334,12 +373,6 @@
                     localWorkSize[0] = localWorkSize[0] / 2;
                     localWorkSize[1] = localWorkSize[1] / 2;
                 }
-
-                 // Initial load of initial position data
-                cmdQueue.enqueueWriteBuffer(curPosBuffer, true, 0, bufSize, curPos, []);
-                cmdQueue.enqueueWriteBuffer(curVelBuffer, true, 0, bufSize, curVel, []);
-
-                cmdQueue.finish();
 
                 // Set arguments of kernel
                 kernel.setArg(0, curPosBuffer);
