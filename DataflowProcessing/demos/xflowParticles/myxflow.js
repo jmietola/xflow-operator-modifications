@@ -299,17 +299,6 @@
 
                 console.log(curPos);
 
-                // InitCLBuffers
-                if (bufSize !== oldBufSize) {
-                    oldBufSize = bufSize;
-
-                    if (curPosBuffer && curVelBuffer && nxtPosBuffer && nxtVelBuffer) {
-                        curPosBuffer.release();
-                        curVelBuffer.release();
-                        nxtPosBuffer.release();
-                        nxtVelBuffer.release();
-                    }
-
                     // particles are on the edge of a ring in z=0 plane,  C=(0,0,0), r=0.5
                     //
                     function InitParticlesOnRing() {
@@ -341,6 +330,18 @@
                     }
 
                     InitParticlesOnRing();
+
+                // InitCLBuffers
+                if (bufSize !== oldBufSize) {
+                    oldBufSize = bufSize;
+
+                    if (curPosBuffer && curVelBuffer && nxtPosBuffer && nxtVelBuffer) {
+                        curPosBuffer.release();
+                        curVelBuffer.release();
+                        nxtPosBuffer.release();
+                        nxtVelBuffer.release();
+                    }
+
                     // Setup WebCL context using the default device of the first available platform
                     curPosBuffer = buffers.curPosBuffer = ctx.createBuffer(WebCL.CL_MEM_READ_WRITE, bufSize);
                     curVelBuffer = buffers.curVelBuffer = ctx.createBuffer(WebCL.CL_MEM_READ_WRITE, bufSize);
