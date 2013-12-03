@@ -101,19 +101,25 @@
 
             <!-- Generate Grid: -->
 
-
+            <dataflow id="particles">
+                <float name="phase" id="ph">0.0</float>
+                <data src="#generatedGrid"/>
+                <compute>
+                    (position, velocity) =  xflow.clParticle(position, velocity, phase);
+                </compute>
+            </dataflow>
             <!-- Transform Grid to Waves: -->
 
-            <data id="wave" compute="(position, velocity) = xflow.clParticle(position, velocity, phase)">
+            <!--data id="wave" compute="(position, velocity) = xflow.clParticle(position, velocity, phase)"-->
                 <!--float name="amplitude" id="amplitude">0.01</float-->
-                <float name="phase" id="ph">0.0</float>
+
                 <!--float3 name="position">-1 0 -1 -1 0 0 -1 0 1 1 0 -1 0 0 0 1 0 1 1 0 -1 1 1 1 1 0 1</float3>
                 <float3 name="velocity">0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0</float3>
                 <float3 name="normal">0 1 0 0 1 0 0 1 0 0 1 0 0 1 0 0 1 0 0 1 0 0 1 0 0 1 0</float3>
                 <float2 name="texcoord">0 0 0 0.5 0 1 0.5 0 0.5 0.5 0.5 1 1 0 1 0.5 1 1</float2>
                 <int name="index">0 1 3 1 3 4 1 2 4 2 4 5 3 4 6 4 6 7 4 5 7 5 7 8</int-->
-                <data src="#generatedGrid"/>
-            </data>
+                <!--data src="#generatedGrid"/-->
+            <!--/data-->
 
             <view id="Camera"
                   orientation="-0.3941052556037903 0.9096987843513489 0.13087835907936096 0.8260897732744243"
@@ -123,7 +129,7 @@
 
             <group shader="#Material" transform="#t_Grid">
                 <mesh type="points">
-                    <data src="#wave"/>
+                    <data src="#particles"/>
                 </mesh>
             </group>
 
