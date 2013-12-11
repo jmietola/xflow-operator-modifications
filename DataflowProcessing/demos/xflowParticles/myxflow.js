@@ -1,12 +1,14 @@
 (function () {
     var webcl = XML3D.webcl,
-        cmdQueue = webcl.cmdQueue,
-        ctx = webcl.ctx;
+        kernelManager = webcl.kernels;
+    XML3D.debug.loglevel = 1;
 
 
     (function () {
 
-        webcl.kernels.register("clParticle",
+        webcl.init("GPU");
+
+        kernelManager.register("clParticle",
             ["    __kernel void clParticle(",
                 "        __global float* curPos,",
                 "        __global float* curVel,",
@@ -89,7 +91,9 @@
                 "        nxtVel[4*gid + 3] = newVel.w;",
                 "    }"].join("\n"));
 
-        var kernel = webcl.kernels.getKernel("clParticle"),
+        var cmdQueue = webcl.createCommandQueue(),
+            kernel = webcl.kernels.getKernel("clParticle"),
+
             oldBufSize = 0, oldPos, oldVel, i = 0,
             buffers = {curPosBuffer: null, curVelBuffer: null, nxtPosBuffer: null, nxtVelBuffer: null};
 
@@ -142,10 +146,10 @@
                     }
 
                     // Setup WebCL context using the default device of the first available platform
-                    curPosBuffer = buffers.curPosBuffer = ctx.createBuffer(WebCL.CL_MEM_READ_WRITE, bufSize);
-                    curVelBuffer = buffers.curVelBuffer = ctx.createBuffer(WebCL.CL_MEM_READ_WRITE, bufSize);
-                    nxtPosBuffer = buffers.nxtPosBuffer = ctx.createBuffer(WebCL.CL_MEM_READ_WRITE, bufSize);
-                    nxtVelBuffer = buffers.nxtVelBuffer = ctx.createBuffer(WebCL.CL_MEM_READ_WRITE, bufSize);
+                    curPosBuffer = buffers.curPosBuffer = webcl.createBuffer(bufSize, "rw");
+                    curVelBuffer = buffers.curVelBuffer = webcl.createBuffer(bufSize, "rw");
+                    nxtPosBuffer = buffers.nxtPosBuffer = webcl.createBuffer(bufSize, "rw");
+                    nxtVelBuffer = buffers.nxtVelBuffer = webcl.createBuffer(bufSize, "rw");
                 }
 
                 // Initial load of initial position data
@@ -157,7 +161,7 @@
 
                 // Get the maximum work group size for executing the kernel on the device
                 //
-                var workGroupSize = kernel.getWorkGroupInfo(webcl.devices[0], WebCL.CL_KERNEL_WORK_GROUP_SIZE);
+                var workGroupSize = kernel.getWorkGroupInfo(webcl.getDevicesByType("GPU")[0], WebCL.CL_KERNEL_WORK_GROUP_SIZE);
 
                 globalWorkSize[0] = 1;
                 globalWorkSize[1] = 1;
@@ -173,27 +177,13 @@
                     localWorkSize[1] = localWorkSize[1] / 2;
                 }
 
-                // Set arguments of kernel
-                kernel.setArg(0, curPosBuffer);
-                kernel.setArg(1, curVelBuffer);
-                kernel.setArg(2, new Int32Array([particles]));
-                kernel.setArg(3, new Float32Array([DT]));
-                kernel.setArg(4, new Int32Array([EPSSQR]));
-                //5 set below, depends on CPU or GPU
-                kernel.setArg(6, nxtPosBuffer);
-                kernel.setArg(7, nxtVelBuffer);
+                var localMemSize = localWorkSize[0] * POS_ATTRIB_SIZE * Float32Array.BYTES_PER_ELEMENT;
 
-                //if(gpu==true)
-                if (true) {
-                    var localMemSize = localWorkSize[0] * POS_ATTRIB_SIZE * Float32Array.BYTES_PER_ELEMENT;
-                    kernel.setArg(5, new Uint32Array([localMemSize]));
-                    // Execute (enqueue) kernel
-                    cmdQueue.enqueueNDRangeKernel(kernel, globalWorkSize.length, [], globalWorkSize, localWorkSize, []);
-                } else {
-                    kernel.setArg(5, new Int32Array([bodyCountPerGroup]));
-                    // Execute (enqueue) kernel
-                    cmdQueue.enqueueNDRangeKernel(kernel, null, globalWorkSize, localWorkSize);
-                }
+                kernelManager.setArgs(kernel, curPosBuffer, curVelBuffer,
+                    new Int32Array([particles]), new Float32Array([DT]), new Int32Array([EPSSQR]),
+                    new Uint32Array([localMemSize]), nxtPosBuffer, nxtVelBuffer);
+
+                cmdQueue.enqueueNDRangeKernel(kernel, globalWorkSize.length, [], globalWorkSize, localWorkSize, []);
 
                 cmdQueue.finish();
 
@@ -212,11 +202,11 @@
                 oldVel.set(newVel);
 
                 /*var el = document.getElementById("wave"),
-                pos = el.querySelector("[name='position']"),
-                vel = el.querySelector("[name='velocity']");
-                pos.setScriptValue(newPos);
-                vel.setScriptValue(newVel);
-                console.log(pos);*/
+                 pos = el.querySelector("[name='position']"),
+                 vel = el.querySelector("[name='velocity']");
+                 pos.setScriptValue(newPos);
+                 vel.setScriptValue(newVel);
+                 console.log(pos);*/
 
                 return true;
             }
