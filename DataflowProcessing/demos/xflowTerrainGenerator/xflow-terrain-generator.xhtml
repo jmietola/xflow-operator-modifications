@@ -52,7 +52,7 @@
      
       <lightshader id="ls_Spot" script="urn:xml3d:lightshader:point">
        <float3 name="attenuation">1 1 1</float3>
-       <float3 name="intensity">50 50 50</float3>
+       <float3 name="intensity">5 5 5</float3>
       </lightshader>
       
       <shader id="Material" script="urn:xml3d:shader:phong">
@@ -60,7 +60,7 @@
        <texture name="diffuseTexture">
            <!--img src="../../assets/water.jpg"/-->
            <!--<video src="../../assets/dizzy.ogv" autoplay="true"/>-->
-           <img src="../../assets/water.jpg"/>
+           <img src="../../assets/sand.jpg"/>
        </texture>
        <float3 name="diffuseColor">1 1 1</float3>
        <float3 name="specularColor">0.5 0.5 0.5</float3>
@@ -72,7 +72,7 @@
        <texture name="diffuseTexture">
            <!--img src="../../assets/water.jpg"/-->
            <!--<video src="../../assets/dizzy.ogv" autoplay="true"/>-->
-           <img src="../../assets/water.jpg"/>
+           <img src="../../assets/sand.jpg"/>
        </texture>
        <float3 name="diffuseColor">1 1 1</float3>
        <float3 name="specularColor">0.5 0.5 0.5</float3>
@@ -116,7 +116,7 @@
      <!-- Wave Shape Display: -->
 
      <group shader="#Material" transform="#t_Grid">
-      <mesh type="points">
+      <mesh type="triangles">
         <data src="#webclTerrain"/>
       </mesh>
      </group>
@@ -149,6 +149,7 @@
         <div id="slider_meshsize" class="slider"></div>
         <div class="info" ><span id="meshsize_value" ></span> vertices</div>
       </div>
+      <button onclick="update()">New Terrain</button>
     </div>
 
     <script type="text/javascript">
@@ -166,17 +167,16 @@
       }
       var diff = Date.now() - lastTime;
       lastTime = Date.now();
-      mytime += diff / 100000;
+      mytime += diff / 1000;
     }
     ]]>
 
-    var init = function(evt) {
+   /* var init = function(evt) {
       if(!fd) {
           var xml3d = document.querySelector("xml3d");
           xml3d.addEventListener("framedrawn", update);
-          update();
       }
-    }
+    }*/
 
   </script>
 
