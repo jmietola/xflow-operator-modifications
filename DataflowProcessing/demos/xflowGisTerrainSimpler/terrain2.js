@@ -84,6 +84,7 @@
 
                     globalWorkSize = [],
                     localWorkSize = [];
+                console.log("buffer size:", bufSize);
                 console.log("position array", position);
                 console.log("elevation array", elevation);
 
@@ -100,7 +101,7 @@
 
                     // Setup WebCL context using the default device of the first available platform
                     initPosBuffer = buffers.initPosBuffer =  webcl.createBuffer(bufSize, "w");
-                    elevationBuffer = buffers.elevationBuffer = webcl.createBuffer(3844, "w");
+                    elevationBuffer = buffers.elevationBuffer = webcl.createBuffer(elevation.length, "w");
                     curNorBuffer = buffers.curNorBuffer =  webcl.createBuffer(bufSize, "rw");
                     curPosBuffer = buffers.curPosBuffer =  webcl.createBuffer(bufSize, "rw");
 
@@ -128,12 +129,12 @@
                 // Initial load of initial position data
                 console.log("position.length", position.length, initPosBuffer.getInfo(WebCL.CL_MEM_SIZE));
                 cmdQueue.enqueueWriteBuffer(initPosBuffer, true, 0, bufSize, position, []);
-                if (elevation.length > 1) {
+             
                 console.log("elevation.length", elevation.length, elevationBuffer.getInfo(WebCL.CL_MEM_SIZE));
 
-                cmdQueue.enqueueWriteBuffer(elevationBuffer, true, 0, 3844, elevation, []);
+                cmdQueue.enqueueWriteBuffer(elevationBuffer, true, 0, elevation.length, elevation, []);
 
-                }
+
                 cmdQueue.finish();
 
                 console.log("nVertices", nVertices);
