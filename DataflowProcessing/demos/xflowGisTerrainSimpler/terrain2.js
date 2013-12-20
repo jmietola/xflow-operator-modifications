@@ -36,20 +36,18 @@
 "                if(index >= count)",
 "                        return;",
 "                int2 di = (int2)(tx, ty);",
-"                //float4 position = vload4_3((size_t)index, vertices);  // mod: sg",
-"                int ii = 3*index;",
-"                float4 position = (float4) (vertices[ii], vertices[ii+1], vertices[ii+2], 1.0f);",
 
 "                //vstore4_3(vertex, (size_t)index, output);  // mod: sg",
-"                int jj = 3*index;",
-"                output[jj  ] = position.x;",
-"                output[jj+1] = elevation[ty];",
-"                output[jj+2] = position.z;",
+"                int ii = 3*index;",
+"                output[ii  ] = vertices[ii];",
+"                output[ii+1] = elevation[ii+1];",
+"                output[ii+2] = vertices[ii+2];",
 
 "                //vstore4_3(normal, (size_t)index, normals); // mod: sg",
-"                normals[jj  ] = 0;",
-"                normals[jj+1] = 1;",
-"                normals[jj+2] = 0;",
+"                //dummy normals",
+"                normals[ii  ] = 0;",
+"                normals[ii+1] = 1;",
+"                normals[ii+2] = 0;",
 "        }"
 
             ].join("\n"));
@@ -86,6 +84,7 @@
 
                     globalWorkSize = [],
                     localWorkSize = [];
+                console.log("position array", position);
                 console.log("elevation array", elevation);
 
                 // InitCLBuffers
