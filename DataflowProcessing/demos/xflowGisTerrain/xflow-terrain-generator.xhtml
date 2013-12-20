@@ -52,6 +52,7 @@
    </h1>
     <xml3d id="myxml3d" class="xml3d" activeView="#Camera" style="background: black;" onload="getOctet();"
            xmlns="http://www.xml3d.org/2009/xml3d">
+     <navigation mode="walk" speed="100" />
      <defs id="mainDef">
                 
       <!--- Not so important part: -->
@@ -64,9 +65,7 @@
       <shader id="Material" script="urn:xml3d:shader:phong">
        <float name="ambientIntensity">1.1</float>
        <texture name="diffuseTexture">
-           <!--img src="../../assets/water.jpg"/-->
-           <!--<video src="../../assets/dizzy.ogv" autoplay="true"/>-->
-           <img src="../../assets/terrain.jpeg"/>
+           <img id="texque" src="../../assets/terrain.jpeg"/>
        </texture>
        <float3 name="diffuseColor">1 1 1</float3>
        <float3 name="specularColor">0.5 0.5 0.5</float3>
@@ -125,7 +124,7 @@
      <view id="Camera" orientation="0.9973636865615845 0.06939224153757095 -0.021225109696388245 2.1702075620905497" position="0.3294936716556549 -11.575345039367676 -7.896969795227051"/>
 
      <!-- Wave Shape Display: -->
-
+7548126
      <group shader="#Material" transform="#t_Grid">
       <mesh type="triangles">
         <data src="#webclTerrain"/>
@@ -155,7 +154,11 @@
         <div class="info" ><span id="meshsize_value" ></span> vertices</div>
       </div>
       <button onclick="update()">New Terrain</button>
-      <button onclick="xhr.send();">Download Tile From Finland</button>
+      <button onclick="xhr.send();xhr2.send();">Download Tile From Finland</button>
+      <button onclick="
+        var elevation = document.getElementById('elevation');
+        elevation.textContent = 0;
+        ">Generate Random</button>
     </div>
 
     <script type="text/javascript">
@@ -187,7 +190,7 @@
         var elevate = {elevationBuffer: null, testBuffer: null};
 
         var xhr = new XMLHttpRequest();
-        xhr.open("GET", "http://dev.cyberlightning.com:9091/geoserver/w3ds?version=0.4&amp;service=w3ds&amp;request=GetScene&amp;crs=EPSG:3047&amp;format=application/octet-stream&amp;layers=fiware:high_resolution&amp;boundingbox=374000,7548000,375270,7549270", true);
+        xhr.open("GET", "http://dev.cyberlightning.com:9091/geoserver/w3ds?version=0.4&amp;service=w3ds&amp;request=GetScene&amp;crs=EPSG:3047&amp;format=application/octet-stream&amp;layers=fiware:high_resolution&amp;boundingbox=378377,7552740,378681,7553040", true);
         xhr.responseType ="arraybuffer";
 
         xhr.onload = function() {
@@ -221,7 +224,26 @@
 
         }
 
+        //Texture Request
+        var texture = "http://dev.cyberlightning.com:9091/geoserver/" +"fiware/wms?service=WMS&amp;version=1.1.0&amp;request=GetMap&amp;layers=" +
+                                    "fiware:NorthernFinland_texture" +
+                                    "&amp;styles=&amp;bbox=" +
+                                    378377+","+
+                                    7552740+","+
+                                    378681+","+
+                                    7553040+
+                                    // "&amp;width="+textureResolution+"&amp;height="+textureResolution+"&amp;srs=EPSG:3067&amp;format=image%2Fpng"
+                                    "&amp;width="+1024+"&amp;height="+1024+"&amp;srs=EPSG:404000&amp;format=image%2Fpng";
 
+        var xhr2 = new XMLHttpRequest();
+        xhr2.open("GET", texture, true);
+        xhr2.responseType ="";
+
+        xhr2.onload = function() {
+
+        document.getElementById("texque").setAttribute("src", texture);
+
+        }
 
   </script>
   </div></div>

@@ -216,6 +216,43 @@
 "                return value;",
 "        }",
 
+"        float test(",
+"                float4 elevation,",
+"                float frequency,",
+"                float lacunarity,",
+"                float increment,",
+"                float octaves)",
+"        {",
+"                int i = 0;",
+"                float fi = 0.0f;",
+"                float remainder = 0.0f;",
+"                float sample = 0.0f;",
+"                float value = 0.0f;",
+"                int iterations = (int)octaves;",
+
+"                float threshold = 0.5f;",
+"                float offset = 1.0f;",
+"                float weight = 1.0f;",
+
+"                float signal = fabs( (1.0f - 2.0f * gradient_noise3d(elevation * 0.01)) );",
+                "                for ( i = 0; i < iterations; i++ )",
+"                {",
+"                        frequency *= lacunarity;",
+"                        weight = clamp( signal * threshold, 0.0f, 1.0f );",
+"                        signal = fabs( (1.0f - 2.0f * gradient_noise3d(elevation * frequency)) );",
+"                        signal = offset - signal;",
+"                        signal *= signal;",
+"                        signal *= weight;",
+"                        value += signal * pow( lacunarity, -fi * increment );",
+
+"                }",
+"                signal = offset - signal;",
+"                signal *= signal;",
+"                value = signal;",
+
+"                return value;",
+"        }",
+
 
 "        float4 cross3(float4 va, float4 vb)",
 "        {",
@@ -271,9 +308,6 @@
 "                //float4 position = vload4_3((size_t)index, vertices);  // mod: sg",
 "                int ii = 3*index;",
 "                float4 position = (float4) (vertices[ii], vertices[ii+1], vertices[ii+2], 1.0f);",
-
-
-
 "                float4 normal = position;",
 "                position.w = 1.0f;",
 
@@ -303,7 +337,7 @@
 "                int jj = 3*index;",
 "                output[jj  ] = vertex.x;",
 "                if(elevation[ty] > 0){",
-"                output[jj+1] = elevation[ty]/20;",
+"                output[jj+1] = elevation[ty]/19;",
                  "}",
                  "else {",
 "                output[jj+1] = ridgedmultifractal3d(sample + dy, frequency, lacunarity, increment, octaves);",
@@ -366,11 +400,12 @@
 
                     globalWorkSize = [],
                     localWorkSize = [];
-                console.log("position length: ", position.length);
+                console.log("position/3 length: ", (position.length)/3);
                 console.log("elevation length: ", elevation.length);
+                console.log("buffer size", bufSize);
                 // InitCLBuffers
                 if (bufSize !== oldBufSize) {
-                    oldBufSize = bufSize;
+                    oldBufSize64 = bufSize;
 
                     if (initPosBuffer && curNorBuffer && curPosBuffer) {
                         initPosBuffer.release();
@@ -406,10 +441,8 @@
                 }
 
                 try{
-                console.log("bufSize", bufSize);
                 // Initial load of initial position data
                 cmdQueue.enqueueWriteBuffer(initPosBuffer, true, 0, bufSize, initPos, []);
-                console.log("Elevation data length:", elevationData.length);
                 if(elevationData.length > 1){
                     console.log("goes here");
                 cmdQueue.enqueueWriteBuffer(elevationBuffer, true, 0, bufSize, elevationData, []);
@@ -437,7 +470,6 @@
             }
         });
     }());
-
 
 Xflow.registerOperator("xflow.customgrid", {
     outputs: [	{type: 'float3', name: 'position', customAlloc: true},
