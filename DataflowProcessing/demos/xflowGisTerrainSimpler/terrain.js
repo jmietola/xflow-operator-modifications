@@ -345,7 +345,6 @@
 
 "                output[jj+2] = vertex.z;",
 
-
 "                //vstore4_3(normal, (size_t)index, normals); // mod: sg",
 "                normals[jj  ] = normal.x;",
 "                normals[jj+1] = normal.y;",
@@ -388,7 +387,7 @@
                     roughness = 0.025,
 
                 //calculate vertices
-                    nVertices = (position.length)/3,
+                    nVertices = Math.floor((position.length)/3),
 
                 // Setup buffers
                     bufSize = nVertices * NUM_VERTEX_COMPONENTS * Float32Array.BYTES_PER_ELEMENT, // size in bytes
@@ -400,9 +399,11 @@
 
                     globalWorkSize = [],
                     localWorkSize = [];
-                console.log("position/3 length: ", (position.length)/3);
+                console.log("position: ", position);
+                console.log("position/3 length: ", (position.length));
                 console.log("elevation length: ", elevation.length);
                 console.log("buffer size", bufSize);
+
                 // InitCLBuffers
                 if (bufSize !== oldBufSize) {
                     oldBufSize64 = bufSize;
@@ -416,10 +417,10 @@
 
                     // Setup WebCL context using the default device of the first available platform
                     initPosBuffer = buffers.initPosBuffer =  webcl.createBuffer(bufSize, "w");
-                    elevationBuffer = buffers.elevationBuffer = webcl.createBuffer(bufSize, "w");
+                    elevationBuffer = buffers.elevationBuffer = webcl.createBuffer(bufSize/3, "w");
                     curNorBuffer = buffers.curNorBuffer =  webcl.createBuffer(bufSize, "rw");
                     curPosBuffer = buffers.curPosBuffer =  webcl.createBuffer(bufSize, "rw");
-
+                    console.log(elevationBuffer.getInfo(WebCL.CL_MEM_SIZE));
                 }
 
                 // Get the maximum work group size for executing the kernel on the device
@@ -442,10 +443,13 @@
 
                 try{
                 // Initial load of initial position data
+                    console.log("goes here2", initPos.length);
                 cmdQueue.enqueueWriteBuffer(initPosBuffer, true, 0, bufSize, initPos, []);
                 if(elevationData.length > 1){
-                    console.log("goes here");
-                cmdQueue.enqueueWriteBuffer(elevationBuffer, true, 0, bufSize, elevationData, []);
+                    console.log("goes here",elevationData.length,elevationBuffer.getInfo(WebCL.CL_MEM_SIZE));
+
+                cmdQueue.enqueueWriteBuffer(elevationBuffer, true, 0, elevationData.length*4, elevationData, []);
+
                 }
                 cmdQueue.finish();
 
@@ -488,7 +492,6 @@ Xflow.registerOperator("xflow.customgrid", {
     evaluate: function(position, normal, texcoord, index, area) {
 
 		var s = area[0];
-
 
         // Create Positions
 		for(var i = 0; i < position.length / 3; i++) {

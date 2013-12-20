@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ <html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <!-- Style -->
+
+    <link rel="stylesheet" type="text/css" media="all" href="../../css/jquery-ui.css"/>
+    <!-- Scripts -->
+    <script type="text/javascript" src="../../deps/xml3d.js"></script>
+    <script type="text/javascript" src="../../deps/jquery-1.8.1.min.js"></script>
+    <script type="text/javascript" src="../../deps/jquery-ui-1.8.23.min.js"></script>
+    <script type="text/javascript" src="../../deps/xml3d-camera.js"></script>
+
+    <script type="text/javascript" src="../../deps/simplex-noise.min.js" />
+
+    <title>XML3D Examples</title>
+
+  </head>
+  <body>
+  <div id="overall"><div id="content">
+   <h1>
+    Procedural Terrain Generator
+   </h1>
+    <xml3d id="myxml3d" class="xml3d" activeView="#Camera" style="background: black;" onload="getOctet();"
+           xmlns="http://www.xml3d.org/2009/xml3d">
+     <navigation mode="walk" speed="100" />
+     <defs id="mainDef">
+
+      <!--- Not so important part: -->
+
+      <lightshader id="ls_Spot" script="urn:xml3d:lightshader:point">
+       <float3 name="attenuation">1 1 1</float3>
+       <float3 name="intensity">50 50 50</float3>
+      </lightshader>
+
+      <shader id="Material" script="urn:xml3d:shader:phong">
+       <float name="ambientIntensity">1.1</float>
+       <texture name="diffuseTexture">
+           <img id="texque" src="../../assets/terrain.jpeg"/>
+       </texture>
+       <float3 name="diffuseColor">1 1 1</float3>
+       <float3 name="specularColor">0.5 0.5 0.5</float3>
+       <float name="shininess">0.0978473581213</float>
+      </shader>
+
+      <transform id="t_Camera" rotation="-0.641815 0.733700 0.223063 1.145952" scale="1 1 1" translation="3.184399 3.711076 2.405665"/>
+      <transform id="t_Grid" rotation="1 0.000000 0.000000 0.000000" scale="2.000000 2.000000 2.000000" translation="0.000000 0.00 0.000000"/>
+      <transform id="t_Lamp" rotation="0.205942 0.331517 0.920698 1.926274" scale="1 1 1" translation="2.086632 10.648042 1.161145"/>
+
+      <data id="customGeneratedGrid" compute="(position, normal, texcoord, index) = xflow.customgrid(area)">
+            <int name="area" id="area">64</int>
+      </data>
+
+      <!-- Transform Grid to Waves: -->
+
+      <data id="webclTerrain" compute="(position, normal) = xflow.clDeform(position, normal, elevation)" >
+        <float3 name="elevation" id="elevation">0.0</float3>
+        <data src="#customGeneratedGrid"/>
+      </data>
+
+     </defs>
+
+     <view id="Camera" orientation="0.9973636865615845 0.06939224153757095 -0.021225109696388245 2.1702075620905497" position="0.3294936716556549 -11.575345039367676 -7.896969795227051"/>
+
+     <!-- Wave Shape Display: -->
+
+     <group shader="#Material" transform="#t_Grid">
+      <mesh type="triangles">
+        <data src="#webclTerrain"/>
+      </mesh>
+     </group>
+
+     <!-- Light Source: -->
+     <group transform="#t_Lamp">
+		<light shader="#ls_Spot"/>
+     </group>
+    </xml3d>
+
+    <div class="controls" >
+      <button onclick="xhr.send();xhr2.send();">Download Tile From Finland</button>
+    </div>
+
+    <script type="text/javascript">
+    <![CDATA[
+    /* Run timer for wave animation */
+    var mytime = 0;
+    var fd = null, lastTime = Date.now(), dir = new XML3DVec3(), clock = 0;
+    var view = document.querySelector("view");
+
+    var update = function() {
+      var phase = document.getElementById("ph");
+
+      if (phase && phase._configured) {
+        phase.textContent = ""+mytime;
+      }
+      var diff = Date.now() - lastTime;
+      lastTime = Date.now();
+      mytime += diff / 1;
+    }
+    ]]>
+
+        var littleEndian = (function() {
+        var buffer = new ArrayBuffer(2);
+        new DataView(buffer).setInt16(0, 256, true);
+        return new Int16Array(buffer)[0] === 256;
+        })();
+        console.log(littleEndian);
+
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", "http://dev.cyberlightning.com:9091/geoserver/w3ds?version=0.4&amp;service=w3ds&amp;request=GetScene&amp;crs=EPSG:3047&amp;format=application/octet-stream&amp;layers=fiware:high_resolution&amp;boundingbox=378377,7552740,378681,7553040", true);
+        xhr.responseType ="arraybuffer";
+
+        xhr.onload = function() {
+        var data = new DataView(this.response), i, dataOffset = 0;
+
+        console.log("1. value (big endian):", data.getInt32(dataOffset, false));
+        dataOffset += 4;
+        console.log("2. value (big endian):", data.getInt32(dataOffset, false));
+        dataOffset += 4;
+        console.log("3. value (big endian):", data.getFloat64(dataOffset, false));
+        dataOffset += 8;
+        console.log("4. value (big endian):", data.getFloat64(dataOffset, false));
+        dataOffset += 8;
+
+        var a = [], offset, i, iterations = Math.floor((this.response.byteLength - dataOffset)/8);
+        for(offset=dataOffset, i=0; i &lt; iterations; offset += 8, i++){
+        a[i] = data.getFloat64(offset, false);
+        }
+
+        var elevation = document.getElementById("elevation");
+        elevation.textContent = a;
+
+        var area = document.getElementById("area");
+        area.textContent = (data.getInt32(0, false));
+        //console.log("a", a);
+        //console.log(new Float64Array(a));
+        //console.log("First two values:", new Int32Array(this.response, 0, 2));
+        //console.log("Next two values:", new Float64Array(this.response, 8, 2));
+        //console.log("Last values:", new Float64Array(this.response, 2*4 + 2*8 , (this.response.byteLength - (2*4 +2*8)) / 8))
+
+        }
+
+        //Texture Request
+        var texture = "http://dev.cyberlightning.com:9091/geoserver/" +"fiware/wms?service=WMS&amp;version=1.1.0&amp;request=GetMap&amp;layers=" +
+                                    "fiware:NorthernFinland_texture" +
+                                    "&amp;styles=&amp;bbox=" +
+                                    378377+","+
+                                    7552740+","+
+                                    378681+","+
+                                    7553040+
+                                    // "&amp;width="+textureResolution+"&amp;height="+textureResolution+"&amp;srs=EPSG:3067&amp;format=image%2Fpng"
+                                    "&amp;width="+1024+"&amp;height="+1024+"&amp;srs=EPSG:404000&amp;format=image%2Fpng";
+
+        var xhr2 = new XMLHttpRequest();
+        xhr2.open("GET", texture, true);
+        xhr2.responseType ="";
+
+        xhr2.onload = function() {
+
+        document.getElementById("texque").setAttribute("src", texture);
+
+        }
+
+
+  </script>
+  </div></div>
+    <script type="text/javascript" src="./terrain2.js" />
+  </body>
+ </html>
