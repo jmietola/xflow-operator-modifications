@@ -136,6 +136,7 @@
                 }
                 cmdQueue.finish();
 
+                console.log("nVertices", nVertices);
                 kernelManager.setArgs(kernel, initPosBuffer, elevationBuffer, curNorBuffer, curPosBuffer, new Float32Array([nVertices]));
 
                 // Execute (enqueue) kernel
