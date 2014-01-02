@@ -32,6 +32,7 @@
 "                int tx = get_global_id(0);",
 "                int ty = get_global_id(1);",
 "                int sx = get_global_size(0);",
+"                int testindex = tx+ty;",
 "                int index = ty * sx + tx;",
 "                if(index >= count)",
 "                        return;",
@@ -40,7 +41,7 @@
 "                //vstore4_3(vertex, (size_t)index, output);  // mod: sg",
 "                int ii = 3*index;",
 "                output[ii  ] = vertices[ii];",
-"                output[ii+1] = elevation[ii+1];",
+"                output[ii+1] = elevation[ty];",
 "                output[ii+2] = vertices[ii+2];",
 
 "                //vstore4_3(normal, (size_t)index, normals); // mod: sg",
@@ -58,21 +59,20 @@
 
         Xflow.registerOperator("xflow.clDeform", {
             outputs: [
-                {type: 'float3', name: 'position'},
-                {type: 'float3', name: 'normal'}
+                {type: 'float3', name: 'position', customAlloc: true},
+                {type: 'float3', name: 'normal', customAlloc: true}
             ],
             params: [
                 {type: 'float3', source: 'position' },
                 {type: 'float3',  source: 'normal'},
-                {type: 'float3',  source: 'elevation'}
+                {type: 'float3',  source: 'elevation'}],
 
-            ],
             evaluate: function (newPos, newNor, position, normal, elevation) {
                 //passing xflow operators input data
                 var NUM_VERTEX_COMPONENTS = 3,
 
                 //calculate vertices
-                    nVertices = Math.floor((position.length)/3),
+                    nVertices = Math.floor((position.length) / 3),
 
                 // Setup buffers
                     bufSize = nVertices * NUM_VERTEX_COMPONENTS * Float32Array.BYTES_PER_ELEMENT, // size in bytes
@@ -84,9 +84,14 @@
 
                     globalWorkSize = [],
                     localWorkSize = [];
+
+            //    var testArray = new Float32Array(position.length);
+            //    var testArray2 = new Float32Array(position.length);
+
+             //   var elevation = new Float32Array([1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2]);
                 console.log("buffer size:", bufSize);
-                console.log("position array", position);
-                console.log("elevation array", elevation);
+                console.log("position array", position.length, position);
+                console.log("elevation array", elevation.length, elevation);
 
                 // InitCLBuffers
                 if (bufSize !== oldBufSize) {
@@ -127,28 +132,36 @@
 
                 try {
                 // Initial load of initial position data
-                console.log("position.length", position.length, initPosBuffer.getInfo(WebCL.CL_MEM_SIZE));
+               // console.log("position.length", position.length, initPosBuffer.getInfo(WebCL.CL_MEM_SIZE));
                 cmdQueue.enqueueWriteBuffer(initPosBuffer, true, 0, bufSize, position, []);
              
-                console.log("elevation.length", elevation.length, elevationBuffer.getInfo(WebCL.CL_MEM_SIZE));
+               // console.log("elevation.length", elevation.length, elevationBuffer.getInfo(WebCL.CL_MEM_SIZE));
 
                 cmdQueue.enqueueWriteBuffer(elevationBuffer, true, 0, elevation.length, elevation, []);
 
-
                 cmdQueue.finish();
 
-                console.log("nVertices", nVertices);
+          //      console.log("nVertices", nVertices);
+
                 kernelManager.setArgs(kernel, initPosBuffer, elevationBuffer, curNorBuffer, curPosBuffer, new Float32Array([nVertices]));
 
                 // Execute (enqueue) kernel
                 cmdQueue.enqueueNDRangeKernel(kernel, globalWorkSize.length, [], globalWorkSize, localWorkSize, []);
 
-                cmdQueue.finish();
-                console.log(newPos);
-                console.log(newNor);
                 // Read the result buffer from OpenCL device
-                cmdQueue.enqueueReadBuffer(curPosBuffer, true, 0, bufSize, newPos , []);
+                cmdQueue.finish();
+
+                console.log("newPos: ", newPos.length, newPos);
+                console.log("newNor", newNor.length, newNor);
+
+                cmdQueue.enqueueReadBuffer(curPosBuffer, true, 0, bufSize, newPos, []);
                 cmdQueue.enqueueReadBuffer(curNorBuffer, true, 0, bufSize, newNor, []);
+
+                //console.log(testArray.length, testArray);
+                //console.log(testArray2.length, testArray2);
+
+                cmdQueue.finish();
+
                 }catch(e){console.log(e.name, e.message)}
 
                 return true;

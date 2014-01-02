@@ -35,7 +35,7 @@
       <shader id="Material" script="urn:xml3d:shader:phong">
        <float name="ambientIntensity">1.1</float>
        <texture name="diffuseTexture">
-           <img id="texque" src="../../assets/terrain.jpeg"/>
+           <img id="texque" src="../../assets/terrain.jpg"/>
        </texture>
        <float3 name="diffuseColor">1 1 1</float3>
        <float3 name="specularColor">0.5 0.5 0.5</float3>
@@ -47,13 +47,13 @@
       <transform id="t_Lamp" rotation="0.205942 0.331517 0.920698 1.926274" scale="1 1 1" translation="2.086632 10.648042 1.161145"/>
 
       <data id="customGeneratedGrid" compute="(position, normal, texcoord, index) = xflow.customgrid(area)">
-            <int name="area" id="area">64</int>
+            <int name="area" id="area">32</int>
       </data>
 
       <!-- Transform Grid to Waves: -->
 
       <data id="webclTerrain" compute="(position, normal) = xflow.clDeform(position, normal, elevation)" >
-        <float3 name="elevation" id="elevation">0.0</float3>
+        <float3 name="elevation" id="elevation">1.2, 1.2, 1.2, 1.2</float3>
         <data src="#customGeneratedGrid"/>
       </data>
 
@@ -106,7 +106,7 @@
         console.log(littleEndian);
 
         var xhr = new XMLHttpRequest();
-        xhr.open("GET", "http://dev.cyberlightning.com:9091/geoserver/w3ds?version=0.4&amp;service=w3ds&amp;request=GetScene&amp;crs=EPSG:3047&amp;format=application/octet-stream&amp;layers=fiware:high_resolution&amp;boundingbox=378377,7552740,378681,7553040", true);
+        xhr.open("GET", "http://dev.cyberlightning.com:9091/geoserver/w3ds?version=0.4&amp;service=w3ds&amp;request=GetScene&amp;crs=EPSG:3047&amp;format=application/octet-stream&amp;layers=fiware:high_resolution&amp;boundingbox=378377,7552740,378691,7553040", true);
         xhr.responseType ="arraybuffer";
 
         xhr.onload = function() {
