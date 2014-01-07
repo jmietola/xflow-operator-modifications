@@ -32,7 +32,7 @@
 "                int tx = get_global_id(0);",
 "                int ty = get_global_id(1);",
 "                int sx = get_global_size(0);",
-"                int testindex = tx+ty;",
+"                int testindex = tx * sx + ty;",
 "                int index = ty * sx + tx;",
 "                if(index >= count)",
 "                        return;",
@@ -41,7 +41,7 @@
 "                //vstore4_3(vertex, (size_t)index, output);  // mod: sg",
 "                int ii = 3*index;",
 "                output[ii  ] = vertices[ii];",
-"                output[ii+1] = elevation[ty];",
+"                output[ii+1] = elevation[tx];",
 "                output[ii+2] = vertices[ii+2];",
 
 "                //vstore4_3(normal, (size_t)index, normals); // mod: sg",
@@ -190,9 +190,9 @@ Xflow.registerOperator("xflow.customgrid", {
         // Create Positions
 		for(var i = 0; i < position.length / 3; i++) {
 			var offset = i*3;
-			position[offset] =  (((i % s) / (s-1))-0.5)*100;
+			position[offset] =  (((i % s) / (s-1))-0.5)*1000;
 			position[offset+1] = 0;
-			position[offset+2] = ((Math.floor(i/s) / (s-1))-0.5)*100;
+			position[offset+2] = ((Math.floor(i/s) / (s-1))-0.5)*1000;
 		}
 
         // Create Normals
