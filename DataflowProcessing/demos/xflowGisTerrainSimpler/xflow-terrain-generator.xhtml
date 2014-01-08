@@ -52,7 +52,7 @@
 
       <!-- Transform Grid to Waves: -->
 
-      <data id="webclTerrain" compute="(position, normal) = xflow.clDeform(position, normal, elevation)" >
+      <data id="webclTerrain" compute="(position, normal) = xflow.clDeform(position, normal, index, elevation)" >
         <float3 name="elevation" id="elevation">1.2, 1.2, 1.2, 1.2</float3>
         <data src="#customGeneratedGrid"/>
       </data>
@@ -106,9 +106,9 @@
 
     //Grid 256x256
     var x = 377099,
-            xx = 379645,
-            y = 7552740,
-            yy = 7553940;
+        xx = 379645,
+        y = 7552740,
+        yy = 7553940;
 
     //Testing Browser's Endianess
     var littleEndian = (function () {
@@ -216,136 +216,6 @@
         xhr2.send();
 
     }
-
-    function computeFaceNormals() {
-
-        var cb = XML3D.vec3.create(), ab = XML3D.vec3.create();
-
-        for (var f = 0, fl = this.faces.length; f &lt; fl; f++) {
-
-            var face = this.faces[ f ];
-
-            var vA = this.vertices[ face.a ];
-            var vB = this.vertices[ face.b ];
-            var vC = this.vertices[ face.c ];
-
-            cb.subVectors(vC, vB);
-            ab.subVectors(vA, vB);
-            cb.cross(ab);
-
-            cb.normalize();
-
-            face.normal.copy(cb);
-
-        }
-
-    }
-
-    function computeVertexNormals(areaWeighted) {
-
-        var v, vl, f, fl, face, vertices;
-
-        // create internal buffers for reuse when calling this method repeatedly
-        // (otherwise memory allocation / deallocation every frame is big resource hog)
-
-        if (this.__tmpVertices === undefined) {
-
-            this.__tmpVertices = new Array(this.vertices.length);
-            vertices = this.__tmpVertices;
-
-            for (v = 0, vl = this.vertices.length; v &lt; vl; v++) {
-
-                vertices[ v ] = XML3D.vec3.create();
-
-            }
-
-            for (f = 0, fl = this.faces.length; f &lt; fl; f++) {
-
-                face = this.faces[ f ];
-                face.vertexNormals = [ XML3D.vec3.create(), XML3D.vec3.create(), XML3D.vec3.create() ];
-
-            }
-
-        } else {
-
-            vertices = this.__tmpVertices;
-
-            for (v = 0, vl = this.vertices.length; v &lt; vl; v++) {
-
-                vertices[ v ].set(0, 0, 0);
-
-            }
-
-        }
-
-        if (areaWeighted) {
-
-            // vertex normals weighted by triangle areas
-            // http://www.iquilezles.org/www/articles/normals/normals.htm
-
-            var vA, vB, vC, vD;
-            var cb = XML3D.vec3.create(), ab = XML3D.vec3.create(),
-                    db = XML3D.vec3.create(), dc = XML3D.vec3.create(), bc = XML3D.vec3.create();
-
-            for (f = 0, fl = this.faces.length; f &lt; fl; f++) {
-
-                face = this.faces[ f ];
-
-                vA = this.vertices[ face.a ];
-                vB = this.vertices[ face.b ];
-                vC = this.vertices[ face.c ];
-
-                cb.subVectors(vC, vB);
-                ab.subVectors(vA, vB);
-                cb.cross(ab);
-
-                vertices[ face.a ].add(cb);
-                vertices[ face.b ].add(cb);
-                vertices[ face.c ].add(cb);
-
-            }
-
-        } else {
-
-            for (f = 0, fl = this.faces.length; f &lt; fl; f++) {
-
-                face = this.faces[ f ];
-
-                vertices[ face.a ].add(face.normal);
-                vertices[ face.b ].add(face.normal);
-                vertices[ face.c ].add(face.normal);
-
-            }
-
-        }
-
-        for (v = 0, vl = this.vertices.length; v &lt; vl; v++) {
-
-            vertices[ v ].normalize();
-
-        }
-
-        for (f = 0, fl = this.faces.length; f &lt; fl; f++) {
-
-            face = this.faces[ f ];
-
-            face.vertexNormals[ 0 ].copy(vertices[ face.a ]);
-            face.vertexNormals[ 1 ].copy(vertices[ face.b ]);
-            face.vertexNormals[ 2 ].copy(vertices[ face.c ]);
-
-        }
-
-    }
-
-    //helper functions
-	function subVectors ( a, b ) {
-
-		this.x = a.x - b.x;
-		this.y = a.y - b.y;
-		this.z = a.z - b.z;
-
-		return this;
-	}
 
     </script>
   </div></div>

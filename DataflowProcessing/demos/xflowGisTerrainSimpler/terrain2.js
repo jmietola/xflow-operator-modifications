@@ -64,9 +64,12 @@
             params: [
                 {type: 'float3', source: 'position' },
                 {type: 'float3',  source: 'normal'},
-                {type: 'float3',  source: 'elevation'}],
+                {type: 'int',  source: 'index'},
+                {type: 'float3',  source: 'elevation'}
 
-            evaluate: function (newPos, newNor, position, normal, elevation) {
+            ],
+
+            evaluate: function (newPos, newNor, position, normal, index, elevation) {
                 //passing xflow operators input data
                 var NUM_VERTEX_COMPONENTS = 3,
 
@@ -133,7 +136,7 @@
                 // Initial load of initial position data
                // console.log("position.length", position.length, initPosBuffer.getInfo(WebCL.CL_MEM_SIZE));
                 cmdQueue.enqueueWriteBuffer(initPosBuffer, true, 0, bufSize, position, []);
-             
+
                // console.log("elevation.length", elevation.length, elevationBuffer.getInfo(WebCL.CL_MEM_SIZE));
 
                 cmdQueue.enqueueWriteBuffer(elevationBuffer, true, 0, elevation.length, elevation, []);
@@ -149,6 +152,127 @@
 
                 // Read the result buffer from OpenCL device
                 cmdQueue.finish();
+
+                //Calculate Normals and assign values to newNor
+
+          function computeFaceNormals() {
+
+        var cb = XML3D.vec3.create(), ab = XML3D.vec3.create();
+
+        for (var f = 0, fl = this.faces.length; f < fl; f++) {
+
+            var face = this.faces[ f ];
+
+            var vA = this.vertices[ face.a ];
+            var vB = this.vertices[ face.b ];
+            var vC = this.vertices[ face.c ];
+
+            XML3D.vec3.cross(output, XML3D.vec3.subtract(cb, vC, vB), XML3D.vec3.subtract(ab, vA, vB));
+
+            cb.normalize();
+
+            face.normal.copy(cb);
+
+        }
+
+    }
+
+    function computeVertexNormals(areaWeighted) {
+
+        var v, vl, f, fl, face, vertices;
+
+        // create internal buffers for reuse when calling this method repeatedly
+        // (otherwise memory allocation / deallocation every frame is big resource hog)
+
+        if (this.__tmpVertices === undefined) {
+
+            this.__tmpVertices = new Array(this.vertices.length);
+            vertices = this.__tmpVertices;
+
+            for (v = 0, vl = this.vertices.length; v < vl; v++) {
+
+                vertices[ v ] = XML3D.vec3.create();
+
+            }
+
+            for (f = 0, fl = this.faces.length; f < fl; f++) {
+
+                face = this.faces[ f ];
+                face.vertexNormals = [ XML3D.vec3.create(), XML3D.vec3.create(), XML3D.vec3.create() ];
+
+            }
+
+        } else {
+
+            vertices = this.__tmpVertices;
+
+            for (v = 0, vl = this.vertices.length; v < vl; v++) {
+
+                vertices[ v ].set(0, 0, 0);
+
+            }
+
+        }
+
+        if (areaWeighted) {
+
+            // vertex normals weighted by triangle areas
+            // http://www.iquilezles.org/www/articles/normals/normals.htm
+
+            var vA, vB, vC, vD;
+            var cb = XML3D.vec3.create(), ab = XML3D.vec3.create(),
+                    db = XML3D.vec3.create(), dc = XML3D.vec3.create(), bc = XML3D.vec3.create();
+
+            for (f = 0, fl = this.faces.length; f < fl; f++) {
+
+                face = this.faces[ f ];
+
+                vA = this.vertices[ face.a ];
+                vB = this.vertices[ face.b ];
+                vC = this.vertices[ face.c ];
+
+                cb.subVectors(vC, vB);
+                ab.subVectors(vA, vB);
+                cb.cross(ab);
+
+                vertices[ face.a ].add(cb);
+                vertices[ face.b ].add(cb);
+                vertices[ face.c ].add(cb);
+
+            }
+
+        } else {
+
+            for (f = 0, fl = this.faces.length; f < fl; f++) {
+
+                face = this.faces[ f ];
+
+                vertices[ face.a ].add(face.normal);
+                vertices[ face.b ].add(face.normal);
+                vertices[ face.c ].add(face.normal);
+
+            }
+
+        }
+
+        for (v = 0, vl = this.vertices.length; v < vl; v++) {
+
+            vertices[ v ].normalize();
+
+        }
+
+        for (f = 0, fl = this.faces.length; f < fl; f++) {
+
+            face = this.faces[ f ];
+
+            face.vertexNormals[ 0 ].copy(vertices[ face.a ]);
+            face.vertexNormals[ 1 ].copy(vertices[ face.b ]);
+            face.vertexNormals[ 2 ].copy(vertices[ face.c ]);
+
+        }
+
+    }
+
 
                 console.log("newPos: ", newPos.length, newPos);
                 console.log("newNor", newNor.length, newNor);
