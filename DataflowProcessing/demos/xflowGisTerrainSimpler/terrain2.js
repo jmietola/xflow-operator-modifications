@@ -13,43 +13,43 @@
         kernelManager = webcl.kernels,
         cmdQueue,
         simplex = new SimplexNoise();
-        XML3D.debug.loglevel = 1;
-        webcl.init("GPU");
-        cmdQueue = webcl.createCommandQueue();
+    XML3D.debug.loglevel = 1;
+    webcl.init("GPU");
+    cmdQueue = webcl.createCommandQueue();
 
     (function () {
 
         kernelManager.register("clDeform",
             [
-"        __kernel void clDeform(",
-"                const __global float *vertices,",
-"                const __global float *elevation,",
-"                __global float *normals,",
-"                __global float *output,",
-"                uint count)",
+                "        __kernel void clDeform(",
+                "                const __global float *vertices,",
+                "                const __global float *elevation,",
+                "                __global float *normals,",
+                "                __global float *output,",
+                "                uint count)",
 
-"        {",
-"                int tx = get_global_id(0);",
-"                int ty = get_global_id(1);",
-"                int sx = get_global_size(0);",
-"                int testindex = tx * sx + ty;",
-"                int index = ty * sx + tx;",
-"                if(index >= count)",
-"                        return;",
-"                int2 di = (int2)(tx, ty);",
+                "        {",
+                "                int tx = get_global_id(0);",
+                "                int ty = get_global_id(1);",
+                "                int sx = get_global_size(0);",
+                "                int testindex = tx * sx + ty;",
+                "                int index = ty * sx + tx;",
+                "                if(index >= count)",
+                "                        return;",
+                "                int2 di = (int2)(tx, ty);",
 
-"                //vstore4_3(vertex, (size_t)index, output);  // mod: sg",
-"                int ii = 3*index;",
-"                output[ii  ] = vertices[ii];",
-"                output[ii+1] = -elevation[tx];",
-"                output[ii+2] = vertices[ii+2];",
+                "                //vstore4_3(vertex, (size_t)index, output);  // mod: sg",
+                "                int ii = 3*index;",
+                "                output[ii  ] = vertices[ii];",
+                "                output[ii+1] = -elevation[tx];",
+                "                output[ii+2] = vertices[ii+2];",
 
-"                //vstore4_3(normal, (size_t)index, normals); // mod: sg",
-"                //dummy normals",
-"                normals[ii  ] = 0;",
-"                normals[ii+1] = 1;",
-"                normals[ii+2] = 0;",
-"        }"
+                "                //vstore4_3(normal, (size_t)index, normals); // mod: sg",
+                "                //dummy normals",
+                "                normals[ii  ] = 0;",
+                "                normals[ii+1] = 1;",
+                "                normals[ii+2] = 0;",
+                "        }"
             ].join("\n"));
 
         var kernel = webcl.kernels.getKernel("clDeform"),
@@ -63,9 +63,9 @@
             ],
             params: [
                 {type: 'float3', source: 'position' },
-                {type: 'float3',  source: 'normal'},
-                {type: 'int',  source: 'index'},
-                {type: 'float3',  source: 'elevation'}
+                {type: 'float3', source: 'normal'},
+                {type: 'int', source: 'index'},
+                {type: 'float3', source: 'elevation'}
 
             ],
 
@@ -87,10 +87,10 @@
                     globalWorkSize = [],
                     localWorkSize = [];
 
-            //    var testArray = new Float32Array(position.length);
-            //    var testArray2 = new Float32Array(position.length);
+                //    var testArray = new Float32Array(position.length);
+                //    var testArray2 = new Float32Array(position.length);
 
-             //   var elevation = new Float32Array([1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2]);
+                //   var elevation = new Float32Array([1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2]);
                 console.log("buffer size:", bufSize);
                 console.log("position array", position.length, position);
                 console.log("elevation array", elevation.length, elevation);
@@ -107,10 +107,10 @@
                     }
 
                     // Setup WebCL context using the default device of the first available platform
-                    initPosBuffer = buffers.initPosBuffer =  webcl.createBuffer(bufSize, "w");
+                    initPosBuffer = buffers.initPosBuffer = webcl.createBuffer(bufSize, "w");
                     elevationBuffer = buffers.elevationBuffer = webcl.createBuffer(elevation.length, "w");
-                    curNorBuffer = buffers.curNorBuffer =  webcl.createBuffer(bufSize, "rw");
-                    curPosBuffer = buffers.curPosBuffer =  webcl.createBuffer(bufSize, "rw");
+                    curNorBuffer = buffers.curNorBuffer = webcl.createBuffer(bufSize, "rw");
+                    curPosBuffer = buffers.curPosBuffer = webcl.createBuffer(bufSize, "rw");
 
                 }
 
@@ -133,218 +133,104 @@
                 }
 
                 try {
-                // Initial load of initial position data
-               // console.log("position.length", position.length, initPosBuffer.getInfo(WebCL.CL_MEM_SIZE));
-                cmdQueue.enqueueWriteBuffer(initPosBuffer, true, 0, bufSize, position, []);
+                    // Initial load of initial position data
+                    // console.log("position.length", position.length, initPosBuffer.getInfo(WebCL.CL_MEM_SIZE));
+                    cmdQueue.enqueueWriteBuffer(initPosBuffer, true, 0, bufSize, position, []);
 
-               // console.log("elevation.length", elevation.length, elevationBuffer.getInfo(WebCL.CL_MEM_SIZE));
+                    // console.log("elevation.length", elevation.length, elevationBuffer.getInfo(WebCL.CL_MEM_SIZE));
 
-                cmdQueue.enqueueWriteBuffer(elevationBuffer, true, 0, elevation.length, elevation, []);
+                    cmdQueue.enqueueWriteBuffer(elevationBuffer, true, 0, elevation.length, elevation, []);
 
-                cmdQueue.finish();
+                    cmdQueue.finish();
 
-          //      console.log("nVertices", nVertices);
+                    //      console.log("nVertices", nVertices);
 
-                kernelManager.setArgs(kernel, initPosBuffer, elevationBuffer, curNorBuffer, curPosBuffer, new Float32Array([nVertices]));
+                    kernelManager.setArgs(kernel, initPosBuffer, elevationBuffer, curNorBuffer, curPosBuffer, new Float32Array([nVertices]));
 
-                // Execute (enqueue) kernel
-                cmdQueue.enqueueNDRangeKernel(kernel, globalWorkSize.length, [], globalWorkSize, localWorkSize, []);
+                    // Execute (enqueue) kernel
+                    cmdQueue.enqueueNDRangeKernel(kernel, globalWorkSize.length, [], globalWorkSize, localWorkSize, []);
 
-                // Read the result buffer from OpenCL device
-                cmdQueue.finish();
+                    // Read the result buffer from OpenCL device
+                    cmdQueue.finish();
 
-                //Calculate Normals and assign values to newNor
+                    //Calculate Normals and assign values to newNor
+                    
+                    console.log("newPos: ", newPos.length, newPos);
+                    console.log("newNor", newNor.length, newNor);
 
-          function computeFaceNormals() {
+                    cmdQueue.enqueueReadBuffer(curPosBuffer, true, 0, bufSize, newPos, []);
+                    cmdQueue.enqueueReadBuffer(curNorBuffer, true, 0, bufSize, newNor, []);
 
-        var cb = XML3D.vec3.create(), ab = XML3D.vec3.create();
+                    //console.log(testArray.length, testArray);
+                    //console.log(testArray2.length, testArray2);
 
-        for (var f = 0, fl = this.faces.length; f < fl; f++) {
+                    cmdQueue.finish();
 
-            var face = this.faces[ f ];
-
-            var vA = this.vertices[ face.a ];
-            var vB = this.vertices[ face.b ];
-            var vC = this.vertices[ face.c ];
-
-            XML3D.vec3.cross(output, XML3D.vec3.subtract(cb, vC, vB), XML3D.vec3.subtract(ab, vA, vB));
-
-            cb.normalize();
-
-            face.normal.copy(cb);
-
-        }
-
-    }
-
-    function computeVertexNormals(areaWeighted) {
-
-        var v, vl, f, fl, face, vertices;
-
-        // create internal buffers for reuse when calling this method repeatedly
-        // (otherwise memory allocation / deallocation every frame is big resource hog)
-
-        if (this.__tmpVertices === undefined) {
-
-            this.__tmpVertices = new Array(this.vertices.length);
-            vertices = this.__tmpVertices;
-
-            for (v = 0, vl = this.vertices.length; v < vl; v++) {
-
-                vertices[ v ] = XML3D.vec3.create();
-
-            }
-
-            for (f = 0, fl = this.faces.length; f < fl; f++) {
-
-                face = this.faces[ f ];
-                face.vertexNormals = [ XML3D.vec3.create(), XML3D.vec3.create(), XML3D.vec3.create() ];
-
-            }
-
-        } else {
-
-            vertices = this.__tmpVertices;
-
-            for (v = 0, vl = this.vertices.length; v < vl; v++) {
-
-                vertices[ v ].set(0, 0, 0);
-
-            }
-
-        }
-
-        if (areaWeighted) {
-
-            // vertex normals weighted by triangle areas
-            // http://www.iquilezles.org/www/articles/normals/normals.htm
-
-            var vA, vB, vC, vD;
-            var cb = XML3D.vec3.create(), ab = XML3D.vec3.create(),
-                    db = XML3D.vec3.create(), dc = XML3D.vec3.create(), bc = XML3D.vec3.create();
-
-            for (f = 0, fl = this.faces.length; f < fl; f++) {
-
-                face = this.faces[ f ];
-
-                vA = this.vertices[ face.a ];
-                vB = this.vertices[ face.b ];
-                vC = this.vertices[ face.c ];
-
-                cb.subVectors(vC, vB);
-                ab.subVectors(vA, vB);
-                cb.cross(ab);
-
-                vertices[ face.a ].add(cb);
-                vertices[ face.b ].add(cb);
-                vertices[ face.c ].add(cb);
-
-            }
-
-        } else {
-
-            for (f = 0, fl = this.faces.length; f < fl; f++) {
-
-                face = this.faces[ f ];
-
-                vertices[ face.a ].add(face.normal);
-                vertices[ face.b ].add(face.normal);
-                vertices[ face.c ].add(face.normal);
-
-            }
-
-        }
-
-        for (v = 0, vl = this.vertices.length; v < vl; v++) {
-
-            vertices[ v ].normalize();
-
-        }
-
-        for (f = 0, fl = this.faces.length; f < fl; f++) {
-
-            face = this.faces[ f ];
-
-            face.vertexNormals[ 0 ].copy(vertices[ face.a ]);
-            face.vertexNormals[ 1 ].copy(vertices[ face.b ]);
-            face.vertexNormals[ 2 ].copy(vertices[ face.c ]);
-
-        }
-
-    }
-
-
-                console.log("newPos: ", newPos.length, newPos);
-                console.log("newNor", newNor.length, newNor);
-
-                cmdQueue.enqueueReadBuffer(curPosBuffer, true, 0, bufSize, newPos, []);
-                cmdQueue.enqueueReadBuffer(curNorBuffer, true, 0, bufSize, newNor, []);
-
-                //console.log(testArray.length, testArray);
-                //console.log(testArray2.length, testArray2);
-
-                cmdQueue.finish();
-
-                }catch(e){console.log(e.name, e.message)}
+                } catch (e) {
+                    console.log(e.name, e.message)
+                }
 
                 return true;
             }
         });
     }());
 
-Xflow.registerOperator("xflow.customgrid", {
-    outputs: [	{type: 'float3', name: 'position', customAlloc: true},
-				{type: 'float3', name: 'normal', customAlloc: true},
-				{type: 'float2', name: 'texcoord', customAlloc: true},
-				{type: 'int', name: 'index', customAlloc: true}],
-    params:  [{type: 'int', source: 'area', array: true}],
-    alloc: function(areas, area)
-    {
-        var s = area[0];
-        areas['position'] = s* s;
-        areas['normal'] = s* s;
-        areas['texcoord'] = s* s;
-        areas['index'] = (s-1) * (s-1) * 6;
-    },
-    evaluate: function(position, normal, texcoord, index, area) {
+    Xflow.registerOperator("xflow.customgrid", {
+        outputs: [
+            {type: 'float3', name: 'position', customAlloc: true},
+            {type: 'float3', name: 'normal', customAlloc: true},
+            {type: 'float2', name: 'texcoord', customAlloc: true},
+            {type: 'int', name: 'index', customAlloc: true}
+        ],
+        params: [
+            {type: 'int', source: 'area', array: true}
+        ],
+        alloc: function (areas, area) {
+            var s = area[0];
+            areas['position'] = s * s;
+            areas['normal'] = s * s;
+            areas['texcoord'] = s * s;
+            areas['index'] = (s - 1) * (s - 1) * 6;
+        },
+        evaluate: function (position, normal, texcoord, index, area) {
 
-		var s = area[0];
+            var s = area[0];
 
-        // Create Positions
-		for(var i = 0; i < position.length / 3; i++) {
-			var offset = i*3;
-			position[offset] =  (((i % s) / (s-1))-0.5)*1000;
-			position[offset+1] = 0;
-			position[offset+2] = ((Math.floor(i/s) / (s-1))-0.5)*1000;
-		}
+            // Create Positions
+            for (var i = 0; i < position.length / 3; i++) {
+                var offset = i * 3;
+                position[offset] = (((i % s) / (s - 1)) - 0.5) * 1000;
+                position[offset + 1] = 0;
+                position[offset + 2] = ((Math.floor(i / s) / (s - 1)) - 0.5) * 1000;
+            }
 
-        // Create Normals
-		for(var i = 0; i < normal.length / 3; i++) {
-			var offset = i*3;
-			normal[offset] =  0;
-			normal[offset+1] = 1;
-			normal[offset+2] = 0;
-		}
-        // Create Texture Coordinates
-		for(var i = 0; i < texcoord.length / 2; i++) {
-			var offset = i*2;
-            texcoord[offset] = (i%s) / (s-1);
-            texcoord[offset+1] = Math.floor(i/s) / (s-1);
-		}
+            // Create Normals
+            for (var i = 0; i < normal.length / 3; i++) {
+                var offset = i * 3;
+                normal[offset] = 0;
+                normal[offset + 1] = 1;
+                normal[offset + 2] = 0;
+            }
+            // Create Texture Coordinates
+            for (var i = 0; i < texcoord.length / 2; i++) {
+                var offset = i * 2;
+                texcoord[offset] = (i % s) / (s - 1);
+                texcoord[offset + 1] = Math.floor(i / s) / (s - 1);
+            }
 
-        // Create Indices
-		var length = (s-1) * (s-1);
-		for(var i = 0; i < length; i++) {
-			var offset = i*6;
-			var base = i + Math.floor(i / (s-1));
-			index[offset+0] = base;
-			index[offset+1] = base + 1;
-			index[offset+2] = base + s;
-			index[offset+4] = base + s;
-			index[offset+3] = base + 1;
-			index[offset+5] = base + s + 1;
-		}
-	}
-});
+            // Create Indices
+            var length = (s - 1) * (s - 1);
+            for (var i = 0; i < length; i++) {
+                var offset = i * 6;
+                var base = i + Math.floor(i / (s - 1));
+                index[offset + 0] = base;
+                index[offset + 1] = base + 1;
+                index[offset + 2] = base + s;
+                index[offset + 4] = base + s;
+                index[offset + 3] = base + 1;
+                index[offset + 5] = base + s + 1;
+            }
+        }
+    });
 
 }());
