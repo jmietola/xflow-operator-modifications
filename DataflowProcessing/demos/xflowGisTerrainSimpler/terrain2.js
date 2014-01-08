@@ -41,7 +41,7 @@
 "                //vstore4_3(vertex, (size_t)index, output);  // mod: sg",
 "                int ii = 3*index;",
 "                output[ii  ] = vertices[ii];",
-"                output[ii+1] = elevation[tx];",
+"                output[ii+1] = -elevation[tx];",
 "                output[ii+2] = vertices[ii+2];",
 
 "                //vstore4_3(normal, (size_t)index, normals); // mod: sg",
@@ -50,7 +50,6 @@
 "                normals[ii+1] = 1;",
 "                normals[ii+2] = 0;",
 "        }"
-
             ].join("\n"));
 
         var kernel = webcl.kernels.getKernel("clDeform"),
