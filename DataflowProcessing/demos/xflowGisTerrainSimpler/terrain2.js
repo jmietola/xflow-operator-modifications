@@ -19,44 +19,86 @@
 
     (function () {
 
-        kernelManager.register("clDeform",
+        kernelManager.register("clElevation",
             [
-                "        __kernel void clDeform(",
-                "                const __global float *vertices,",
+                "        __kernel void clElevation(",
+                "                const __global float *positions,",
                 "                const __global float *elevation,",
+                "                const __global int *indices,",
                 "                __global float *normals,",
                 "                __global float *output,",
                 "                uint count)",
 
+
                 "        {",
-                "                int tx = get_global_id(0);",
-                "                int ty = get_global_id(1);",
-                "                int sx = get_global_size(0);",
-                "                int testindex = tx * sx + ty;",
-                "                int index = ty * sx + tx;",
-                "                if(index >= count)",
+                "                int tx = get_global_id(0)*3;",
+
+                "                if(tx >= count*3)",
                 "                        return;",
-                "                int2 di = (int2)(tx, ty);",
+                "               int i = indices[tx]*3;",
+                "               int ii = indices[tx+1]*3;",
+                "               int iii = indices[tx+2]*3;",
 
-                "                //vstore4_3(vertex, (size_t)index, output);  // mod: sg",
-                "                int ii = 3*index;",
-                "                output[ii  ] = vertices[ii];",
-                "                output[ii+1] = -elevation[tx];",
-                "                output[ii+2] = vertices[ii+2];",
+                "                if(i >= count*3 || ii >= count*3 || iii >= count*3)",
+                "                        return;",
 
-                "                //vstore4_3(normal, (size_t)index, normals); // mod: sg",
-                "                //dummy normals",
-                "                normals[ii  ] = 0;",
-                "                normals[ii+1] = 1;",
-                "                normals[ii+2] = 0;",
+                "                //Vertex v0;   ",
+                "                output[i] = positions[i];",
+                "                output[i+1] = elevation[indices[tx]];",
+                "                output[i+2] = positions[i+2];",
+
+                "                //Vertex v1;   ",
+                "                output[ii] = positions[ii];",
+                "                output[ii+1] = elevation[indices[tx+1]];",
+                "                output[ii+2] = positions[ii+2];",
+
+                "                //Vertex v2;   ",
+                "                output[iii] = positions[iii];",
+                "                output[iii+1] = elevation[indices[tx+2]];",
+                "                output[iii+2] = positions[iii+2];",
+
+                "                float4 v0 = (float4) (output[i], output[i+1], output[i+2], 1.0f);",
+                "                float4 v1 = (float4) (output[ii], output[ii+1], output[ii+2], 1.0f);",
+                "                float4 v2 = (float4) (output[iii], output[iii+1], output[iii+2], 1.0f);",
+                "                float4 normal = cross(v2-v0, v1-v0);",
+
+                "                normals[i] = normal.x;",
+                "                normals[i+1] = normal.y;",
+                "                normals[i+2] = normal.z;",
+
+                "                normals[ii] = normal.x;",
+                "                normals[ii+1] = normal.y;",
+                "                normals[ii+2] = normal.z;",
+
+                "                normals[iii] = normal.x;",
+                "                normals[iii+1] = normal.y;",
+                "                normals[iii+2] = normal.z;",
+
                 "        }"
             ].join("\n"));
 
-        var kernel = webcl.kernels.getKernel("clDeform"),
-            oldBufSize = 0,
-            buffers = {initPosBuffer: null, elevationBuffer: null, curPosBuffer: null, curNorBuffer: null};
+        kernelManager.register("clNormalize",
+            [
+                "        __kernel void clNormalize(",
+                "                const __global int *normals,",
+                "                __global float *nout,",
+                "                uint count)",
 
-        Xflow.registerOperator("xflow.clDeform", {
+
+                "        {",
+
+
+
+                "        }"
+            ].join("\n"));
+
+
+        var kernel = webcl.kernels.getKernel("clElevation"),
+            kernel2 = webcl.kernels.getKernel("clNormalize"),
+            oldBufSize = 0,
+            buffers = {initPosBuffer: null, elevationBuffer: null, indexBuffer: null, curPosBuffer: null, curNorBuffer: null};
+
+        Xflow.registerOperator("xflow.clElevation", {
             outputs: [
                 {type: 'float3', name: 'position', customAlloc: true},
                 {type: 'float3', name: 'normal', customAlloc: true}
@@ -71,103 +113,88 @@
 
             evaluate: function (newPos, newNor, position, normal, index, elevation) {
                 //passing xflow operators input data
-                var NUM_VERTEX_COMPONENTS = 3,
 
                 //calculate vertices
-                    nVertices = Math.floor((position.length) / 3),
+                var nVertices = Math.floor((position.length)),
+                    nIndices = Math.floor((index.length)),
+                    nElevation = Math.floor((elevation.length)),
 
                 // Setup buffers
-                    bufSize = nVertices * NUM_VERTEX_COMPONENTS * Float32Array.BYTES_PER_ELEMENT, // size in bytes
+                    bufSize = nVertices * Float32Array.BYTES_PER_ELEMENT, // size in bytes
+                    bufSizeIndices = nIndices * Int32Array.BYTES_PER_ELEMENT, // size in bytes
+                    bufSizeElevation = nElevation * Float32Array.BYTES_PER_ELEMENT, // size in bytes
 
                     initPosBuffer = buffers.initPosBuffer,
                     elevationBuffer = buffers.elevationBuffer,
+                    indexBuffer = buffers.indexBuffer,
                     curPosBuffer = buffers.curPosBuffer,
                     curNorBuffer = buffers.curNorBuffer,
 
                     globalWorkSize = [],
                     localWorkSize = [];
 
-                //    var testArray = new Float32Array(position.length);
-                //    var testArray2 = new Float32Array(position.length);
-
-                //   var elevation = new Float32Array([1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2]);
                 console.log("buffer size:", bufSize);
                 console.log("position array", position.length, position);
                 console.log("elevation array", elevation.length, elevation);
+                console.log("index array", index.length, index);
+                console.log("Num of Vertices: ", nVertices);
 
                 // InitCLBuffers
                 if (bufSize !== oldBufSize) {
                     oldBufSize64 = bufSize;
 
-                    if (initPosBuffer && elevationBuffer && curNorBuffer && curPosBuffer) {
+                    if (initPosBuffer && elevationBuffer && indexBuffer && curNorBuffer && curPosBuffer) {
                         initPosBuffer.release();
                         elevationBuffer.release();
+                        indexBuffer.release();
                         curNorBuffer.release();
                         curPosBuffer.release();
                     }
 
                     // Setup WebCL context using the default device of the first available platform
-                    initPosBuffer = buffers.initPosBuffer = webcl.createBuffer(bufSize, "w");
-                    elevationBuffer = buffers.elevationBuffer = webcl.createBuffer(elevation.length, "w");
+                    initPosBuffer = buffers.initPosBuffer = webcl.createBuffer(bufSize, "r");
+                    elevationBuffer = buffers.elevationBuffer = webcl.createBuffer(bufSizeElevation, "r");
+                    indexBuffer = buffers.indexBuffer = webcl.createBuffer(bufSizeIndices, "r");
                     curNorBuffer = buffers.curNorBuffer = webcl.createBuffer(bufSize, "rw");
                     curPosBuffer = buffers.curPosBuffer = webcl.createBuffer(bufSize, "rw");
 
                 }
 
-                // Get the maximum work group size for executing the kernel on the device
-                //
-                var workGroupSize = kernel.getWorkGroupInfo(webcl.getDevicesByType("GPU")[0], WebCL.CL_KERNEL_WORK_GROUP_SIZE);
-
-                globalWorkSize[0] = 1;
-                globalWorkSize[1] = 1;
-                while (globalWorkSize[0] * globalWorkSize[1] < nVertices) {
-                    globalWorkSize[0] = globalWorkSize[0] * 2;
-                    globalWorkSize[1] = globalWorkSize[1] * 2;
-                }
-
-                localWorkSize[0] = globalWorkSize[0];
-                localWorkSize[1] = globalWorkSize[1];
-                while (localWorkSize[0] * localWorkSize[1] > workGroupSize) {
-                    localWorkSize[0] = localWorkSize[0] / 2;
-                    localWorkSize[1] = localWorkSize[1] / 2;
-                }
-
                 try {
                     // Initial load of initial position data
-                    // console.log("position.length", position.length, initPosBuffer.getInfo(WebCL.CL_MEM_SIZE));
-                    cmdQueue.enqueueWriteBuffer(initPosBuffer, true, 0, bufSize, position, []);
+                    cmdQueue.enqueueWriteBuffer(initPosBuffer, false, 0, bufSize, position, []);
 
-                    // console.log("elevation.length", elevation.length, elevationBuffer.getInfo(WebCL.CL_MEM_SIZE));
+                    //Write elevation data
+                    cmdQueue.enqueueWriteBuffer(elevationBuffer, false, 0, bufSizeElevation, elevation, []);
 
-                    cmdQueue.enqueueWriteBuffer(elevationBuffer, true, 0, elevation.length, elevation, []);
+                    //Write indices
+                    cmdQueue.enqueueWriteBuffer(indexBuffer, false, 0, bufSizeIndices, index, []);
 
                     cmdQueue.finish();
 
-                    //      console.log("nVertices", nVertices);
+                    kernelManager.setArgs(kernel, initPosBuffer, elevationBuffer, indexBuffer, curNorBuffer, curPosBuffer, new Int32Array([Math.floor(index.length / 3)]));
 
-                    kernelManager.setArgs(kernel, initPosBuffer, elevationBuffer, curNorBuffer, curPosBuffer, new Float32Array([nVertices]));
+                    var localWS = [2];
+                    var globalWS = [Math.ceil((index.length) / localWS[0]) * localWS[0]];
 
+                    console.log(localWS);
+                    console.log(globalWS);
                     // Execute (enqueue) kernel
-                    cmdQueue.enqueueNDRangeKernel(kernel, globalWorkSize.length, [], globalWorkSize, localWorkSize, []);
+                    cmdQueue.enqueueNDRangeKernel(kernel, 1, [], globalWS, localWS, []);
 
                     // Read the result buffer from OpenCL device
                     cmdQueue.finish();
 
-                    //Calculate Normals and assign values to newNor
-                    
                     console.log("newPos: ", newPos.length, newPos);
                     console.log("newNor", newNor.length, newNor);
 
-                    cmdQueue.enqueueReadBuffer(curPosBuffer, true, 0, bufSize, newPos, []);
-                    cmdQueue.enqueueReadBuffer(curNorBuffer, true, 0, bufSize, newNor, []);
-
-                    //console.log(testArray.length, testArray);
-                    //console.log(testArray2.length, testArray2);
+                    cmdQueue.enqueueReadBuffer(curPosBuffer, false, 0, bufSize, newPos, []);
+                    cmdQueue.enqueueReadBuffer(curNorBuffer, false, 0, bufSize, newNor, []);
 
                     cmdQueue.finish();
 
                 } catch (e) {
-                    console.log(e.name, e.message)
+                    console.log(e.name, e.message);
                 }
 
                 return true;

@@ -52,8 +52,8 @@
 
       <!-- Transform Grid to Waves: -->
 
-      <data id="webclTerrain" compute="(position, normal) = xflow.clDeform(position, normal, index, elevation)" >
-        <float3 name="elevation" id="elevation">1.2, 1.2, 1.2, 1.2</float3>
+      <data id="webclTerrain" compute="(position, normal) = xflow.clElevation(position, normal, index, elevation)" >
+        <float3 name="elevation" id="elevation">1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2</float3>
         <data src="#customGeneratedGrid"/>
       </data>
      <bool id="useKeys">false</bool>
@@ -76,7 +76,7 @@
     </xml3d>
 
     <div class="controls" >
-      <button onclick="elevationRequest(377099,7552740,379645,7553940);textureRequest(377099,7552740,379645,7553940);">Download Tile From Finland</button>
+      <button onclick="elevationRequest(377099,7552740,379645,7555290);textureRequest(377099,7552740,379645,7555290);">Download Tile From Finland</button>
     </div>
 
     <script type="text/javascript">
@@ -98,8 +98,7 @@
     }
     ]]>
 
-    /* 128
-     var x = 378377,
+   /*  var x = 378377,
      xx = 379645,
      y = 7552740,
      yy = 7553940;*/
@@ -108,7 +107,7 @@
     var x = 377099,
         xx = 379645,
         y = 7552740,
-        yy = 7553940;
+        yy = 7555290;
 
     //Testing Browser's Endianess
     var littleEndian = (function () {
@@ -122,26 +121,26 @@
     //
     document.addEventListener('keydown', function (event) {
         if (event.keyCode == 87) {
-            y += 600;
-            yy += 600;
+            y += 700;
+            yy += 700;
             elevationRequest(x, y, xx, yy);
             textureRequest(x, y, xx, yy);
         }
         else if (event.keyCode == 65) {
-            x -= 600;
-            xx -= 600;
+            x -= 700;
+            xx -= 700;
             elevationRequest(x, y, xx, yy);
             textureRequest(x, y, xx, yy);
         }
         else if (event.keyCode == 68) {
-            x += 600;
-            xx += 600;
+            x += 700;
+            xx += 700;
             elevationRequest(x, y, xx, yy);
             textureRequest(x, y, xx, yy);
         }
         else if (event.keyCode == 83) {
-            y -= 600;
-            yy -= 600;
+            y -= 700;
+            yy -= 700;
             elevationRequest(x, y, xx, yy);
             textureRequest(x, y, xx, yy);
         }
