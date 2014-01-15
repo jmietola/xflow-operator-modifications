@@ -44,17 +44,17 @@
 
                 "                //Vertex v0;   ",
                 "                output[i] = positions[i];",
-                "                output[i+1] = elevation[indices[tx]];",
+                "                output[i+1] = -elevation[indices[tx]];",
                 "                output[i+2] = positions[i+2];",
 
                 "                //Vertex v1;   ",
                 "                output[ii] = positions[ii];",
-                "                output[ii+1] = elevation[indices[tx+1]];",
+                "                output[ii+1] = -elevation[indices[tx+1]];",
                 "                output[ii+2] = positions[ii+2];",
 
                 "                //Vertex v2;   ",
                 "                output[iii] = positions[iii];",
-                "                output[iii+1] = elevation[indices[tx+2]];",
+                "                output[iii+1] = -elevation[indices[tx+2]];",
                 "                output[iii+2] = positions[iii+2];",
 
                 "                float4 v0 = (float4) (output[i], output[i+1], output[i+2], 1.0f);",
@@ -62,17 +62,20 @@
                 "                float4 v2 = (float4) (output[iii], output[iii+1], output[iii+2], 1.0f);",
                 "                float4 normal = cross(v2-v0, v1-v0);",
 
-                "                normals[i] = normal.x;",
-                "                normals[i+1] = normal.y;",
-                "                normals[i+2] = normal.z;",
 
-                "                normals[ii] = normal.x;",
-                "                normals[ii+1] = normal.y;",
-                "                normals[ii+2] = normal.z;",
+                "                float l = 1.0/sqrt(normal.x*normal.x+normal.y*normal.y+normal.z*normal.z);",
 
-                "                normals[iii] = normal.x;",
-                "                normals[iii+1] = normal.y;",
-                "                normals[iii+2] = normal.z;",
+                "                normals[i] = normal.x * l;",
+                "                normals[i+1] = normal.y * l;",
+                "                normals[i+2] = normal.z * l;",
+
+                "                normals[ii] = normal.x * l;",
+                "                normals[ii+1] = normal.y * l;",
+                "                normals[ii+2] = normal.z * l;",
+
+                "                normals[iii] = normal.x * l;",
+                "                normals[iii+1] = normal.y * l;",
+                "                normals[iii+2] = normal.z * l;",
 
                 "        }"
             ].join("\n"));

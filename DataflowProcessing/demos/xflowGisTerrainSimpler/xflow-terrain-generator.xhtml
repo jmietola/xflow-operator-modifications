@@ -18,7 +18,7 @@
   <body>
   <div id="overall"><div id="content">
    <h1>
-    Procedural Terrain Generator
+    Pallas Moonlight Adventure
    </h1>
     <xml3d id="myxml3d" class="xml3d" activeView="#Camera" style="background: white;" onload="getOctet();"
            xmlns="http://www.xml3d.org/2009/xml3d">
@@ -33,7 +33,7 @@
       </lightshader>
 
       <shader id="Material" script="urn:xml3d:shader:phong">
-       <float name="ambientIntensity">0.9</float>
+       <float name="ambientIntensity">0.2</float>
        <texture name="diffuseTexture">
            <img id="texque" src="../../assets/terrain.jpg"/>
        </texture>
@@ -56,7 +56,7 @@
         <float3 name="elevation" id="elevation">1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2</float3>
         <data src="#customGeneratedGrid"/>
       </data>
-     <bool id="useKeys">false</bool>
+     <bool id="useKeys">true</bool>
      </defs>
 
      <view id="Camera" orientation="0.9936351776123047 0.09378012269735336 0.0624052993953228 1.5895026015606506" position="-458.2914123535156 -5284.001953125 14.74322509765625"/>
@@ -76,7 +76,7 @@
     </xml3d>
 
     <div class="controls" >
-      <button onclick="elevationRequest(377099,7552740,379645,7555290);textureRequest(377099,7552740,379645,7555290);">Download Tile From Finland</button>
+      <button onclick="elevationRequest(366377,7542740,379645,7555290);textureRequest(368377,7542740,379645,7555290);">Download Tile From Finland</button>
     </div>
 
     <script type="text/javascript">
@@ -104,10 +104,17 @@
      yy = 7553940;*/
 
     //Grid 256x256
-    var x = 377099,
+    /*var x = 377099,
         xx = 379645,
         y = 7552740,
+        yy = 7555290;*/
+
+    //Grid 128x128 with lod=5
+    var x = 366377,
+        xx = 379645,
+        y = 7542740,
         yy = 7555290;
+
 
     //Testing Browser's Endianess
     var littleEndian = (function () {
@@ -152,7 +159,7 @@
 
         var xhr = new XMLHttpRequest();
 
-        xhr.open("GET", "http://dev.cyberlightning.com:9091/geoserver/w3ds?version=0.4&amp;service=w3ds&amp;request=GetScene&amp;crs=EPSG:3047&amp;format=application/octet-stream&amp;layers=fiware:high_resolution&amp;boundingbox=" + x + "," + y + "," + xx + "," + yy + "", true);
+        xhr.open("GET", "http://dev.cyberlightning.com:9091/geoserver/w3ds?version=0.4&amp;service=w3ds&amp;request=GetScene&amp;crs=EPSG:3047&amp;format=application/octet-stream&amp;layers=fiware:high_resolution_terrain&amp;boundingbox=" + x + "," + y + "," + xx + "," + yy + "&amp;LOD=5", true);
         xhr.responseType = "arraybuffer";
 
         xhr.onload = function () {
