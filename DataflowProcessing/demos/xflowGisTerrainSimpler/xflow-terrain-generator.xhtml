@@ -27,9 +27,10 @@
 
       <!--- Not so important part: -->
 
-      <lightshader id="ls_Spot" script="urn:xml3d:lightshader:point">
-       <float3 name="attenuation">1 1 1</float3>
-       <float3 name="intensity">500000 500000 500000</float3>
+      <lightshader id="light1" script="urn:xml3d:lightshader:directional" >
+        <float3 name="intensity" >0.5 0.5 0.5</float3>
+        <bool name="castShadow">true</bool>
+        <float3 name="direction">1 -0.5 1.0</float3>
       </lightshader>
 
       <shader id="Material" script="urn:xml3d:shader:phong">
@@ -43,7 +44,7 @@
       </shader>
 
       <transform id="t_Camera" rotation="-0.641815 0.733700 0.223063 1.145952" scale="1 1 1" translation="3.184399 3.711076 2.405665"/>
-      <transform id="t_Grid" rotation="1 0.000000 0.000000 0.000000" scale="2.000000 2.000000 2.000000" translation="0.000000 0.00 0.000000"/>
+      <transform id="t_Grid" rotation="1 0.000000 0.000000 0.000000" scale="25.000000 25.000000 25.000000" translation="0.000000 0.00 0.000000"/>
       <transform id="t_Lamp" rotation="0.205942 0.331517 0.920698 1.926274" scale="1 1 1" translation="2.086632 10.648042 1.161145"/>
 
       <data id="customGeneratedGrid" compute="(position, normal, texcoord, index) = xflow.customgrid(area)">
@@ -52,14 +53,19 @@
 
       <!-- Transform Grid to Waves: -->
 
-      <data id="webclTerrain" compute="(position, normal) = xflow.clElevation(position, normal, index, elevation)" >
-        <float3 name="elevation" id="elevation">1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2</float3>
+    <!--data id="webclTerrain" compute="(position, normal) = xflow.clDeform(position, normal, amplitude , phase, run)" -->
+      <data id="webclTerrain" compute="(position, normal) = xflow.clDeform(position, normal, amplitude , phase)" >
+        <float3 name="elevation" id="elevation">0.0</float3>
+        <float name="amplitude" id="amplitude">0.09</float>
+        <float name="phase" id="ph">0.01</float>
         <data src="#customGeneratedGrid"/>
       </data>
+    <!--/data-->
+
      <bool id="useKeys">true</bool>
      </defs>
 
-     <view id="Camera" orientation="0.9936351776123047 0.09378012269735336 0.0624052993953228 1.5895026015606506" position="-458.2914123535156 -5284.001953125 14.74322509765625"/>
+     <view id="Camera" orientation="0.9942595958709717 0.042695533484220505 0.09810669720172882 2.699319334783083" position="12.303448677062988 -37.300498962402344 -65.11109161376953"/>
 
      <!-- Wave Shape Display: -->
 
@@ -76,7 +82,7 @@
     </xml3d>
 
     <div class="controls" >
-      <button onclick="elevationRequest(366377,7542740,379645,7555290);textureRequest(368377,7542740,379645,7555290);">Download Tile From Finland</button>
+      <button onclick="elevationRequest(377099,7552740,379645,7555290);textureRequest(377099,7552740,379645,7555290);">Download Tile From Finland</button>
     </div>
 
     <script type="text/javascript">
@@ -104,16 +110,16 @@
      yy = 7553940;*/
 
     //Grid 256x256
-    /*var x = 377099,
+    var x = 377099,
         xx = 379645,
         y = 7552740,
-        yy = 7555290;*/
+        yy = 7555290;
 
     //Grid 128x128 with lod=5
-    var x = 366377,
+   /* var x = 366377,
         xx = 379645,
         y = 7542740,
-        yy = 7555290;
+        yy = 7555290;*/
 
 
     //Testing Browser's Endianess
@@ -159,10 +165,16 @@
 
         var xhr = new XMLHttpRequest();
 
-        xhr.open("GET", "http://dev.cyberlightning.com:9091/geoserver/w3ds?version=0.4&amp;service=w3ds&amp;request=GetScene&amp;crs=EPSG:3047&amp;format=application/octet-stream&amp;layers=fiware:high_resolution_terrain&amp;boundingbox=" + x + "," + y + "," + xx + "," + yy + "&amp;LOD=5", true);
+        xhr.open("GET", "http://dev.cyberlightning.com:9091/geoserver/w3ds?version=0.4&amp;service=w3ds&amp;request=GetScene&amp;crs=EPSG:3047&amp;format=application/octet-stream&amp;layers=fiware:high_resolution_terrain&amp;boundingbox=" + x + "," + y + "," + xx + "," + yy + "&amp;LOD=10", true);
         xhr.responseType = "arraybuffer";
 
         xhr.onload = function () {
+
+            // This changes compute Attribute if elevation data is found
+            if(this.response.byteLength &gt;= 2 ){
+            var webclTerrain = document.getElementById("webclTerrain");
+            webclTerrain.setAttribute("compute", "(position, normal) = xflow.clElevation(position, normal, index, elevation)");
+            }
             var data = new DataView(this.response), i, dataOffset = 0;
 
             console.log("1. value (big endian):", data.getInt32(dataOffset, false));
