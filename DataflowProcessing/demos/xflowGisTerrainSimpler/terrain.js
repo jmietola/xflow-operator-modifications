@@ -169,6 +169,9 @@
                     // Read the result buffer from OpenCL device
                     cmdQueue.finish();
 
+                    console.log("newPos: ", newPos);
+                    console.log("newNor: ", newNor);
+
                     cmdQueue.enqueueReadBuffer(curPosBuffer, false, 0, bufSize, newPos, []);
                     cmdQueue.enqueueReadBuffer(curNorBuffer, false, 0, bufSize, newNor, []);
 
