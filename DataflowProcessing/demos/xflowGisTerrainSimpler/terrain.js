@@ -1,11 +1,12 @@
 /*--------------------------------------------*/
 //
-//  Procedural Xflow Terrain Generator!
+//  Procedural Xflow Terrain Generator and gis data morpher!
 //
 //  In demo there are two planes. The one at below
 //  is based on javascript and the upper one is
 //  based on WebCL
 //
+// Jouni Mietola @ Cyberlightning Ltd.
 //
 /*--------------------------------------------*/
 (function () {
@@ -61,7 +62,6 @@
                 "                float4 v1 = (float4) (output[ii], output[ii+1], output[ii+2], 1.0f);",
                 "                float4 v2 = (float4) (output[iii], output[iii+1], output[iii+2], 1.0f);",
                 "                float4 normal = cross(v2-v0, v1-v0);",
-
 
                 "                float l = 1.0/sqrt(normal.x*normal.x+normal.y*normal.y+normal.z*normal.z);",
 
@@ -119,12 +119,6 @@
                     globalWorkSize = [],
                     localWorkSize = [];
 
-                console.log("buffer size:", bufSize);
-                console.log("position array", position.length, position);
-                console.log("elevation array", elevation.length, elevation);
-                console.log("index array", index.length, index);
-                console.log("Num of Vertices: ", nVertices);
-
                 // InitCLBuffers
                 if (bufSize !== oldBufSize) {
                     oldBufSize64 = bufSize;
@@ -168,9 +162,6 @@
 
                     // Read the result buffer from OpenCL device
                     cmdQueue.finish();
-
-                    console.log("newPos: ", newPos);
-                    console.log("newNor: ", newNor);
 
                     cmdQueue.enqueueReadBuffer(curPosBuffer, false, 0, bufSize, newPos, []);
                     cmdQueue.enqueueReadBuffer(curNorBuffer, false, 0, bufSize, newNor, []);
